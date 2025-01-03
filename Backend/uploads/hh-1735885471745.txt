@@ -1,0 +1,30 @@
+
+-- Dumping data for table duanyody.categorys: ~6 rows (approximately)
+INSERT INTO `categorys` (`categoryId`, `name`, `past`, `image`) VALUES
+	(1, 'SALE', 'sale', NULL),
+	(2, 'Mới về', 'new', NULL),
+	(3, 'Nam', 'Nam', 'https://m.yodycdn.com/fit-in/filters:format(webp)/products/media/categories/menu_man.webp'),
+	(4, 'Nữ', 'Nu', 'https://m.yodycdn.com/fit-in/filters:format(webp)/products/media/categories/menu_woman.webp'),
+	(5, 'Trẻ em', 'child', 'https://m.yodycdn.com/fit-in/filters:format(webp)/products/media/categories/2023-06-12-08-48-19_a5b00606-d7c0-4ba0-9611-33867680f45b.jpg'),
+	(6, 'Bộ sưu tập', 'Abum', NULL);
+
+
+-- Dumping data for table duanyody.childcategorys: ~17 rows (approximately)
+INSERT INTO `childcategorys` (`childId`, `name`, `past`, `categoryId`) VALUES
+	(1, 'Áo nam', 'aonam', 3),
+	(2, 'Quần nam', 'quannam', 3),
+	(4, 'Đồ mặc trong nam', 'domactrongnam', 3),
+	(5, 'Đồ thể thao nam', NULL, 3),
+	(6, 'Phụ kiện nam', NULL, 3),
+	(7, 'Áo nữ', 'Example', 4),
+	(8, 'Quần nữ', 'Example', 4),
+	(10, 'Đồ mặc trong nữ', 'Example', 4),
+	(11, 'Đồ thể thao nữ', 'Example', 4),
+	(13, 'Phụ kiện nữ', 'Example', 4),
+	(14, 'Áo trẻ em', 'Example', 5),
+	(15, 'Quần trẻ em', 'Example', 5),
+	(17, 'Đồ mặc trong trẻ em', 'Example', 5),
+	(18, 'Đầm và chân váy bé gái', 'Example', 5),
+	(19, 'Phụ kiện trẻ em', 'Example', 5);
+
+noi dung 1

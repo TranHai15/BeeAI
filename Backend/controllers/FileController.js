@@ -3,13 +3,6 @@ import fs from "fs";
 import XLSX from "xlsx";
 
 import fileModel from "../models/File.js";
-const formatSqlString = (input) => {
-  // Xóa toàn bộ ký tự không mong muốn
-  const sanitized = input.replace(/\n/g, "").replace(/\t/g, "");
-
-  // Thêm xuống dòng đúng nơi cần thiết
-  return sanitized.replace(/VALUES/g, "VALUES\n").replace(/\),/g, "),\n");
-};
 
 const fileController = {
   // Xử lý việc tải file lên và gộp file
@@ -60,10 +53,10 @@ const fileController = {
   },
   getOneFile: async (req, res) => {
     const fileId = await req.params.id;
-    console.log("🚀 ~ getOneFile: ~ fileId:", fileId);
+    // console.log("🚀 ~ getOneFile: ~ fileId:", fileId);
 
     const results = await fileModel.getOneFiles(fileId);
-    console.log("🚀 ~ getOneFile: ~ results:", results);
+    // console.log("🚀 ~ getOneFile: ~ results:", results);
     // Truy vấn thông tin file từ cơ sở dữ liệu
 
     const file = results[0];
@@ -90,8 +83,6 @@ const fileController = {
   saveFile: async (req, res) => {
     try {
       const { fileId, type, data } = req.body;
-      // console.log("🚀 ~ saveFile: ~ fileId:", fileId);
-      // console.log("🚀 ~ saveFile: ~ data:", data);
 
       // Lấy đường dẫn file dựa trên fileId
       const filePa = await fileModel.getFilePathById(fileId);
@@ -104,34 +95,32 @@ const fileController = {
       const absolutePath = path.resolve(filePath);
       if (type === "txt") {
         let formattedData;
-        // console.log("data", typeof data);
+        if (typeof data === "string") {
+          console.log("string");
+          console.log("Trước khi thay thế:", JSON.stringify(data));
 
-        // if (typeof data === "string") {
-        //   // Nếu là chuỗi, loại bỏ các ký tự không mong muốn và định dạng lại
-        //   formattedData = data
+          formattedData = data.replace(/\\n/g, "/\n").replace(/\\t/g, "");
+        } else if (typeof data === "object") {
+          // Nếu là object, giả sử object chứa chuỗi JSON hoặc SQL
+          if (data.payload && typeof data.payload === "string") {
+            formattedData = data.payload
+              .replace(/\n/g, "<br>")
+              .replace(/\t/g, "<br>")
+              .replace(/VALUES/g, "<br>")
+              .replace(/\),/g, "),\n");
+          } else {
+            console.log("oject");
+            // Nếu không, chuyển thành chuỗi JSON đẹp
+            formattedData = JSON.stringify(data, null, 2);
+          }
+        } else {
+          console.log("kihac");
+          // Nếu là dữ liệu dạng khác, chuyển sang chuỗi
+          formattedData = String(data);
+        }
+        formattedData = formattedData.replace(/\//g, "").replace(/^"|"$/g, "");
+        console.log("dulieusau", formattedData);
 
-        //     .replace(/\t/g, "") // Xóa ký tự tab
-        //     .replace(/VALUES/g, "VALUES\n") // Thêm xuống dòng sau VALUES
-        //     .replace(/\),/g, "),\n"); // Thêm xuống dòng sau mỗi dòng dữ liệu
-        // } else if (typeof data === "object") {
-        //   // Nếu là object, giả sử object chứa chuỗi JSON hoặc SQL
-        //   if (data.payload && typeof data.payload === "string") {
-        //     formattedData = data.payload
-
-        //       .replace(/\t/g, "")
-        //       .replace(/VALUES/g, "VALUES\n")
-        //       .replace(/\),/g, "),\n");
-        //   } else {
-        //     // Nếu không, chuyển thành chuỗi JSON đẹp
-        //     formattedData = JSON.stringify(data, null, 2);
-        //   }
-        // } else {
-        //   // Nếu là dữ liệu dạng khác, chuyển sang chuỗi
-        formattedData = data;
-        // }
-        // formattedData = "heloban  ban khoe \n khong \n bạn cần gì";
-        console.log("formattedData", data);
-        // Lưu vào file
         fs.writeFile(absolutePath, formattedData, "utf8", (err) => {
           if (err) {
             console.error("Error writing file:", err);

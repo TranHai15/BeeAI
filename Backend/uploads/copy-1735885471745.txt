@@ -1,0 +1,12 @@
+
+-- Dumping data for table duanyody.categorys: ~6 rows (approximately)
+INSERT INTO `categorys` (`categoryId`, `name`, `past`, `image`) VALUES
+	(1, 'SALE', 'sale', NULL),
+	(2, 'Mới về', 'new', NULL),
+	(3, 'Nam', 'Nam', 'https://m.yodycdn.com/fit-in/filters:format(webp)/products/media/categories/menu_man.webp'),
+	(4, 'Nữ', 'Nu', 'https://m.yodycdn.com/fit-in/filters:format(webp)/products/media/categories/menu_woman.webp'),
+	(5, 'Trẻ em', 'child', 'https://m.yodycdn.com/fit-in/filters:format(webp)/products/media/categories/2023-06-12-08-48-19_a5b00606-d7c0-4ba0-9611-33867680f45b.jpg'),
+	(6, 'Bộ sưu tập', 'Abum', NULL);
+
+
+noi dung 2

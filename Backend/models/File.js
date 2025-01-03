@@ -4,6 +4,8 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import connectDatabase from "../db.js";
+import axios from "axios";
+import FormData from "form-data";
 
 // Convert import.meta.url to a filesystem path
 const __filename = fileURLToPath(import.meta.url);
@@ -54,93 +56,139 @@ class fileModel {
 
   // Xử lý file và chuyển đổi sang PDF
   static async processFilesAndConvertPDF(files) {
-    for (const file of files) {
-      const filePath = path.join(__dirname, "../uploads", file.filename);
+    let txtFiles = [];
+    let xlsxFiles = [];
+
+    // Phân loại file vào các mảng tương ứng (txt và xlsx)
+    files.forEach((file) => {
       const fileExt = path.extname(file.filename).toLowerCase();
+      if (fileExt === ".txt") {
+        txtFiles.push(file);
+      } else if (fileExt === ".xlsx") {
+        xlsxFiles.push(file);
+      }
+    });
 
-      let fileData = [];
-      let headers = [];
-      await fileModel.insertFileDatabase(file.filename, filePath, fileExt);
+    // Kiểm tra nếu có file .xlsx thì mới xử lý
+    if (xlsxFiles.length > 0) {
+      for (const file of xlsxFiles) {
+        const filePath = path.join(__dirname, "../uploads", file.filename);
+        const fileExt = path.extname(file.filename).toLowerCase();
 
-      if (fileExt === ".xlsx") {
-        const workbook = XLSX.readFile(filePath);
-        const sheetNames = workbook.SheetNames;
+        await fileModel.insertFileDatabase(file.filename, filePath, fileExt);
 
-        sheetNames.forEach((sheetName) => {
-          const sheet = workbook.Sheets[sheetName];
-          const data = XLSX.utils.sheet_to_json(sheet);
+        if (fileExt === ".xlsx") {
+          const workbook = XLSX.readFile(filePath);
+          const sheetNames = workbook.SheetNames;
 
-          if (data.length > 0) {
-            if (headers.length === 0) {
-              headers = Object.keys(data[0]);
+          sheetNames.forEach(async (sheetName) => {
+            const sheet = workbook.Sheets[sheetName];
+            const data = XLSX.utils.sheet_to_json(sheet, { defval: "" }); // defval: "" để đảm bảo các ô trống là chuỗi rỗng
+
+            if (data.length > 0) {
+              // Tạo đường dẫn PDF cho từng file
+              const pdfFilePath = path.join(
+                __dirname,
+                "../pdf",
+                `${file.filename}_output.pdf`
+              );
+
+              // Chuyển dữ liệu của từng file thành PDF mà không cần gộp lại
+              await fileModel.convertExcelToPDF(data, pdfFilePath); // Đảm bảo đây là hàm async
             }
-            fileData.push(...data);
-          }
-        });
-
-        if (fileData.length > 0) {
-          const pdfFilePath = path.join(
-            __dirname,
-            "../pdf",
-            `${file.filename}_output.pdf`
-          );
-          await fileModel.convertExcelToPDF(fileData, headers, pdfFilePath);
+          });
         }
-      } else if (fileExt === ".txt") {
+      }
+    } else {
+      console.log("No .xlsx files to process");
+    }
+
+    // Kiểm tra nếu có file .txt thì mới xử lý
+    if (txtFiles.length > 0) {
+      let combinedData = ""; // Biến lưu trữ dữ liệu gộp từ tất cả các file .txt
+      for (const file of txtFiles) {
+        const filePath = path.join(__dirname, "../uploads", file.filename);
+        const fileExt = path.extname(file.filename).toLowerCase();
+        await fileModel.insertFileDatabase(file.filename, filePath, fileExt);
+
         const data = fs.readFileSync(filePath, "utf-8");
         const content = data
           .split("\n")
           .map((row) => row.trim())
           .join("\n");
 
+        // Gộp dữ liệu từ tất cả các file .txt
+        combinedData += content + "\n\n";
+      }
+
+      // Nếu có dữ liệu gộp được, chuyển thành PDF
+      if (combinedData) {
         const pdfFilePath = path.join(
           __dirname,
-          "../pdf",
-          `${file.filename}_output.pdf`
+          "../merge",
+          "combined_output.txt.pdf" // Tên file PDF đầu ra
         );
-        await fileModel.convertTextToPDF(content, pdfFilePath);
+
+        // Chuyển đổi dữ liệu đã gộp thành PDF
+        await fileModel.convertTextToPDF(combinedData, pdfFilePath);
       }
+    } else {
+      console.log("No .txt files to process");
     }
   }
 
   // Chuyển đổi dữ liệu Excel thành PDF
-  static async convertExcelToPDF(fileData, headers, pdfOutputPath) {
+  static async convertExcelToPDF(fileData, pdfOutputPath) {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
 
-    // Tạo nội dung HTML từ dữ liệu Excel không dùng bảng
+    // Tạo nội dung HTML từ dữ liệu Excel dạng bảng
     let htmlContent = "<html><body>";
 
-    // Hiển thị headers như là tiêu đề
+    // Tạo bảng với tiêu đề
     htmlContent += "<h2>Dữ liệu từ file Excel</h2>";
-    htmlContent += "<div><strong>Headers:</strong><ul>";
+
+    // Tạo bảng HTML
+    htmlContent +=
+      "<table border='1' style='border-collapse: collapse; width: 100%;'>";
+
+    // Lấy danh sách các keys từ row đầu tiên để tạo header
+    const headers = Object.keys(fileData[0]);
+
+    // Tạo header cho bảng
+    htmlContent += "<thead><tr>";
     headers.forEach((header) => {
-      htmlContent += `<li>${header}</li>`;
+      htmlContent += `<th style='padding: 5px;'>${header}</th>`;
     });
-    htmlContent += "</ul></div>";
+    htmlContent += "</tr></thead>";
 
-    // Hiển thị dữ liệu từng dòng
-    htmlContent += "<div><strong>Dữ liệu:</strong><ul>";
+    // Tạo dữ liệu cho bảng
+    htmlContent += "<tbody>";
     fileData.forEach((row) => {
-      htmlContent += "<li>";
+      htmlContent += "<tr>";
       headers.forEach((header) => {
-        htmlContent += `${header}: ${row[header] || "N/A"}, `;
+        htmlContent += `<td style='padding: 5px;'>${row[header] || "N/A"}</td>`; // Hiển thị giá trị mỗi cột
       });
-      htmlContent = htmlContent.slice(0, -2); // Xóa dấu ", " cuối cùng
-      htmlContent += "</li>";
+      htmlContent += "</tr>";
     });
-    htmlContent += "</ul></div>";
+    htmlContent += "</tbody>";
 
+    htmlContent += "</table>";
     htmlContent += "</body></html>";
 
     await page.setContent(htmlContent);
 
+    // Tạo file PDF từ nội dung HTML đã định dạng
     await page.pdf({
       path: pdfOutputPath,
       format: "A4",
       printBackground: true,
     });
-
+    console.log(
+      "🚀 ~ fileModel ~ convertExcelToPDF ~ pdfOutputPath:",
+      pdfOutputPath
+    );
+    await fileModel.sendFile(pdfOutputPath);
     await browser.close();
   }
 
@@ -157,7 +205,7 @@ class fileModel {
       format: "A4",
       printBackground: true,
     });
-
+    await fileModel.sendFile(pdfOutputPath);
     await browser.close();
   }
   // Lấy toàn bộ file
@@ -199,7 +247,7 @@ class fileModel {
     const query = `SELECT file_path FROM file_uploads where id = ?`;
     try {
       const [rows] = await user.connection.execute(query, [id]);
-      console.log("🚀 ~ fileModel ~ getFilePathById ~ rows:", rows);
+      // console.log("🚀 ~ fileModel ~ getFilePathById ~ rows:", rows);
       return rows; // Trả về tất cả người dùng
     } catch (error) {
       console.error("Không lấy được dữ liệu người dùng:", error);
@@ -223,6 +271,43 @@ class fileModel {
       throw error;
     } finally {
       await user.closeConnection(); // Đóng kết nối
+    }
+  }
+  //
+  static async sendFile(
+    pdfFilePath,
+    uploadUrl = "https://36f0-2405-4802-1804-8c70-d92d-4e6-c0b-f789.ngrok-free.app/upload"
+  ) {
+    try {
+      // Kiểm tra xem file có tồn tại không
+      if (!fs.existsSync(pdfFilePath)) {
+        console.error("File không tồn tại:", pdfFilePath);
+        return; // Dừng lại nếu file không tồn tại
+      }
+
+      // Mở stream file PDF
+      const fileStream = fs.createReadStream(pdfFilePath);
+
+      // Tạo đối tượng FormData để gửi file
+      const formData = new FormData();
+
+      // Thêm file vào FormData, gửi dưới tên trường 'file' và tên file gốc
+      formData.append("file", fileStream);
+
+      // Gửi yêu cầu POST đến API đích
+      const response = await axios.post(uploadUrl, formData, {
+        headers: {
+          ...formData.getHeaders(), // Đảm bảo gửi đúng headers cho FormData
+        },
+      });
+
+      // Trả về response nếu thành công
+      console.log("File uploaded successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      // Xử lý lỗi nếu có
+      console.error("Error uploading file:", error);
+      throw error; // Ném lại lỗi để xử lý ở nơi gọi hàm
     }
   }
 }
