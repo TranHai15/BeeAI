@@ -13,8 +13,8 @@ export default function ChatBoxConTent() {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [MessageChat]);
-  const text =
-    "# Đây là Heading 1 \n ## Đây là Heading 2 \n ### Đây là Heading 3 \n #### Đây là Heading 4\n **Đây là văn bản in đậm.** *Đây là văn bản in nghiêng.* [Đây là một liên kết](https://www.example.com) ![Đây là một hình ảnh](https://via.placeholder.com/150) --- - Đây là một danh sách - Mục 2 - Mục con 1 - Mục con 2 --- > Đây là một trích dẫn văn bản. --- `Đây là một đoạn mã` --- 1. Mục 1 trong danh sách có thứ tự 2. Mục 2 1. Mục con 1 2. Mục con 2 ---";
+  // const text =
+    // "# Đây là Heading 1 \n ## Đây là Heading 2 \n ### Đây là Heading 3 \n #### Đây là Heading 4\n **Đây là văn bản in đậm.** *Đây là văn bản in nghiêng.* [Đây là một liên kết](https://www.example.com) ![Đây là một hình ảnh](https://via.placeholder.com/150) --- - Đây là một danh sách - Mục 2 - Mục con 1 - Mục con 2 --- > Đây là một trích dẫn văn bản. --- `Đây là một đoạn mã` --- 1. Mục 1 trong danh sách có thứ tự 2. Mục 2 1. Mục con 1 2. Mục con 2 ---";
   return (
     <div className="ChatBoxConTent relative ">
       <main className="container__message your-element">

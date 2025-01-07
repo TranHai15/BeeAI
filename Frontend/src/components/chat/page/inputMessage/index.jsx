@@ -58,7 +58,7 @@ export default function InputMessage() {
     };
     try {
       const response = await fetch(
-        "https://36f0-2405-4802-1804-8c70-d92d-4e6-c0b-f789.ngrok-free.app",
+        "https://3c71-118-70-48-14.ngrok-free.app",
         {
           method: "POST",
           headers: {
@@ -84,21 +84,21 @@ export default function InputMessage() {
 
         const text = decoder.decode(value);
 
-        const lines = text.split("/n");
+        const lines = text;
 
-        const i = lines.length - 1;
+        // const i = lines.length - 1;
 
         flushSync(() => {
-          aiResponse += lines[i];
+          aiResponse = lines;
           SetMessagesChat((prevMessages) => {
             const lastMessage = prevMessages[prevMessages.length - 1];
             if (lastMessage?.role === "assistant") {
               return [
                 ...prevMessages.slice(0, -1),
-                { ...lastMessage, content: lines[i] },
+                { ...lastMessage, content: lines },
               ];
             }
-            return [...prevMessages, { role: "assistant", content: lines[i] }];
+            return [...prevMessages, { role: "assistant", content: lines }];
           });
         });
       }
