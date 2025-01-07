@@ -58,7 +58,7 @@ export default function InputMessage() {
     };
     try {
       const response = await fetch(
-        "https://3c71-118-70-48-14.ngrok-free.app",
+        "http://localhost:3000/api/chat",
         {
           method: "POST",
           headers: {

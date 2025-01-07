@@ -20,21 +20,21 @@ export default function ChatBoxConTent() {
       <main className="container__message your-element">
         {MessageChat.map((text, index) => (
           <div key={index}>
-            <div className="min-w-full flex gap-4">
+            <div className=" flex gap-4">
               {text.role === "assistant" && (
                 <div className="logo__chat logo__none w-10 h-w-10">
                   <img src="../../../../src/assets/user/logo.svg" />
-                </div>
+         </div>
               )}
               <div
-                className={` min-w-full flex ${
+                className={` flex ${
                   text.role === "user" ? "justify-end" : "gap-4 items-start"
                 }`}
               >
-                <div
-                  className={` ${
+                        <div 
+                  className={` flex ${
                     text.role === "user"
-                      ? "content__chat--user w-3/4 items-end"
+                      ? "content__chat--user w-3/4 items-end  "
                       : "content__chat"
                   }`}
                 >

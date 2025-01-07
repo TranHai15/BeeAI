@@ -1,7 +1,4 @@
 .inputMessage {
-  /* background-color: #fff; */
-  /* border-radius: 20px; */
-  /* padding: 3px 0; */
   position: relative;
   bottom: -3px;
 }
@@ -35,6 +32,7 @@
   white-space: normal;
   word-wrap: break-word; /* Bẻ từ dài thành nhiều dòng */
   white-space: normal;
+  justify-content: flex-end;
 }
 .container__message {
   overflow-y: auto;
