@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
+import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 // import "./redis.js"; // Nếu cần dùng Redis thì bật dòng này
@@ -8,17 +9,18 @@ import dotenv from "dotenv";
 dotenv.config(); // Đọc biến môi trường từ file .env
 
 const app = express();
-
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 // Phục vụ các tệp tĩnh trong thư mục img
-app.use("/img", express.static(path.join(path.resolve(), "../img")));
-
+// app.use("/img", express.static(path.join(path.resolve(), "../img")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Sử dụng cors
 app.use(cookieParser()); // cookie
 app.use(
   cors({
-    origin: "http://localhost:5173", // Đảm bảo đúng domain của frontend
+    origin: "http://localhost:5174", // Đảm bảo đúng domain của frontend
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true, // Quan trọng: cho phép cookie được gửi đi
+    credentials: true // Quan trọng: cho phép cookie được gửi đi
   })
 );
 

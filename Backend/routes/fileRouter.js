@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
     const newFileName = `${newBaseName}-${timestamp}${ext}`; // Đặt tên file mới
 
     cb(null, newFileName); // Đặt tên file mới
-  },
+  }
 });
 
 const upload = multer({ storage: storage });
@@ -37,6 +37,11 @@ router.post(
   "/upload",
   upload.array("files", 10), // Cho phép upload tối đa 10 file
   fileController.uploadAndMergeFiles
+);
+router.post(
+  "/uploadPDF",
+  upload.array("files", 10), // Cho phép upload tối đa 10 file
+  fileController.uploadsPDF
 );
 
 router.get("/", fileController.getFile);

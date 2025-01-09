@@ -6,7 +6,8 @@ import { fileURLToPath } from "url";
 import connectDatabase from "../db.js";
 import axios from "axios";
 import FormData from "form-data";
-
+import PDFMerger from "pdf-merger-js";
+const merger = new PDFMerger();
 // Convert import.meta.url to a filesystem path
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,12 +45,43 @@ class fileModel {
       const [result] = await user.connection.execute(insertQuery, [
         fileName,
         filePath,
-        fileType,
+        fileType
       ]);
-      console.log("Thêm file gốc thành công:", result.insertId);
+      // console.log("Thêm file gốc thành công:", result.insertId);
       return result.insertId; // Trả về ID của file đã thêm vào database
     } catch (error) {
       console.error("Lỗi khi thêm file vào database:", error);
+      throw error;
+    }
+  }
+
+  static async updateFileDatabase(fileName, filePath, fileType, id) {
+    const user = new fileModel();
+    await user.connect();
+
+    const updateQuery = `
+    UPDATE file_uploads
+    SET file_name = ?, file_path = ?, file_type = ? 
+    WHERE id = ?
+  `;
+
+    try {
+      const [result] = await user.connection.execute(updateQuery, [
+        fileName,
+        filePath,
+        fileType,
+        id
+      ]);
+
+      // console.log("Cập nhật file thành công:", result.affectedRows); // Logs how many rows were updated
+
+      if (result.affectedRows > 0) {
+        return id; // Return the ID of the updated record
+      } else {
+        throw new Error("No rows were updated. Make sure the ID exists.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi cập nhật file vào database:", error);
       throw error;
     }
   }
@@ -58,18 +90,21 @@ class fileModel {
   static async processFilesAndConvertPDF(files) {
     let txtFiles = [];
     let xlsxFiles = [];
+    let pdfFiles = [];
 
-    // Phân loại file vào các mảng tương ứng (txt và xlsx)
+    // Phân loại file vào các mảng tương ứng (txt, xlsx, pdf)
     files.forEach((file) => {
       const fileExt = path.extname(file.filename).toLowerCase();
       if (fileExt === ".txt") {
         txtFiles.push(file);
-      } else if (fileExt === ".xlsx") {
+      } else if (fileExt === ".xlsx" || fileExt === ".xls") {
         xlsxFiles.push(file);
+      } else if (fileExt === ".pdf") {
+        pdfFiles.push(file);
       }
     });
 
-    // Kiểm tra nếu có file .xlsx thì mới xử lý
+    // Xử lý file .xlsx và .xls
     if (xlsxFiles.length > 0) {
       for (const file of xlsxFiles) {
         const filePath = path.join(__dirname, "../uploads", file.filename);
@@ -77,7 +112,7 @@ class fileModel {
 
         await fileModel.insertFileDatabase(file.filename, filePath, fileExt);
 
-        if (fileExt === ".xlsx") {
+        if (fileExt === ".xlsx" || fileExt === ".xls") {
           const workbook = XLSX.readFile(filePath);
           const sheetNames = workbook.SheetNames;
 
@@ -93,8 +128,8 @@ class fileModel {
                 `${file.filename}_output.pdf`
               );
 
-              // Chuyển dữ liệu của từng file thành PDF mà không cần gộp lại
-              await fileModel.convertExcelToPDF(data, pdfFilePath); // Đảm bảo đây là hàm async
+              // Chuyển dữ liệu của từng file thành PDF
+              await fileModel.convertExcelToPDF(data, pdfFilePath);
             }
           });
         }
@@ -103,7 +138,7 @@ class fileModel {
       console.log("No .xlsx files to process");
     }
 
-    // Kiểm tra nếu có file .txt thì mới xử lý
+    // Xử lý file .txt
     if (txtFiles.length > 0) {
       let combinedData = ""; // Biến lưu trữ dữ liệu gộp từ tất cả các file .txt
       for (const file of txtFiles) {
@@ -134,6 +169,30 @@ class fileModel {
       }
     } else {
       console.log("No .txt files to process");
+    }
+
+    // Xử lý file .pdf
+    if (pdfFiles.length > 0) {
+      for (const file of pdfFiles) {
+        const filePath = path.join(__dirname, "../uploads", file.filename);
+        const fileExt = path.extname(file.filename).toLowerCase();
+
+        await fileModel.insertFileDatabase(file.filename, filePath, fileExt);
+        // Thêm file PDF vào merger
+
+        await merger.add(filePath);
+      }
+
+      // Tạo file PDF gộp hoàn chỉnh
+      const mergedPDFPath = path.join(
+        __dirname,
+        "../mergepdf",
+        "combined_output.pdf"
+      );
+      await merger.save(mergedPDFPath);
+      await fileModel.sendFile(mergedPDFPath);
+    } else {
+      console.log("No .pdf files to process");
     }
   }
 
@@ -182,12 +241,12 @@ class fileModel {
     await page.pdf({
       path: pdfOutputPath,
       format: "A4",
-      printBackground: true,
+      printBackground: true
     });
-    console.log(
-      "🚀 ~ fileModel ~ convertExcelToPDF ~ pdfOutputPath:",
-      pdfOutputPath
-    );
+    // console.log(
+    //   "🚀 ~ fileModel ~ convertExcelToPDF ~ pdfOutputPath:",
+    //   pdfOutputPath
+    // );
     await fileModel.sendFile(pdfOutputPath);
     await browser.close();
   }
@@ -203,7 +262,7 @@ class fileModel {
     await page.pdf({
       path: pdfOutputPath,
       format: "A4",
-      printBackground: true,
+      printBackground: true
     });
     await fileModel.sendFile(pdfOutputPath);
     await browser.close();
@@ -276,7 +335,7 @@ class fileModel {
   //
   static async sendFile(
     pdfFilePath,
-    uploadUrl = "https://36f0-2405-4802-1804-8c70-d92d-4e6-c0b-f789.ngrok-free.app/upload"
+    uploadUrl = `${process.env.URL__AI}/upload`
   ) {
     try {
       // Kiểm tra xem file có tồn tại không
@@ -297,17 +356,130 @@ class fileModel {
       // Gửi yêu cầu POST đến API đích
       const response = await axios.post(uploadUrl, formData, {
         headers: {
-          ...formData.getHeaders(), // Đảm bảo gửi đúng headers cho FormData
-        },
+          ...formData.getHeaders() // Đảm bảo gửi đúng headers cho FormData
+        }
       });
 
       // Trả về response nếu thành công
-      console.log("File uploaded successfully:", response.data);
+      // console.log("File uploaded successfully:", response.data);
       return response.data;
     } catch (error) {
       // Xử lý lỗi nếu có
       console.error("Error uploading file:", error);
       throw error; // Ném lại lỗi để xử lý ở nơi gọi hàm
+    }
+  }
+  static async updatePDF(files, id) {
+    let txtFiles = [];
+    let xlsxFiles = [];
+    let pdfFiles = [];
+
+    // Phân loại file vào các mảng tương ứng (txt, xlsx, pdf)
+    files.forEach((file) => {
+      const fileExt = path.extname(file.filename).toLowerCase();
+      if (fileExt === ".txt") {
+        txtFiles.push(file);
+      } else if (fileExt === ".xlsx" || fileExt === ".xls") {
+        xlsxFiles.push(file);
+      } else if (fileExt === ".pdf") {
+        pdfFiles.push(file);
+      }
+    });
+
+    // Xử lý file .xlsx và .xls
+    if (xlsxFiles.length > 0) {
+      for (const file of xlsxFiles) {
+        const filePath = path.join(__dirname, "../uploads", file.filename);
+        const fileExt = path.extname(file.filename).toLowerCase();
+
+        await fileModel.insertFileDatabase(file.filename, filePath, fileExt);
+
+        if (fileExt === ".xlsx" || fileExt === ".xls") {
+          const workbook = XLSX.readFile(filePath);
+          const sheetNames = workbook.SheetNames;
+
+          sheetNames.forEach(async (sheetName) => {
+            const sheet = workbook.Sheets[sheetName];
+            const data = XLSX.utils.sheet_to_json(sheet, { defval: "" }); // defval: "" để đảm bảo các ô trống là chuỗi rỗng
+
+            if (data.length > 0) {
+              // Tạo đường dẫn PDF cho từng file
+              const pdfFilePath = path.join(
+                __dirname,
+                "../pdf",
+                `${file.filename}_output.pdf`
+              );
+
+              // Chuyển dữ liệu của từng file thành PDF
+              await fileModel.convertExcelToPDF(data, pdfFilePath);
+            }
+          });
+        }
+      }
+    } else {
+      console.log("No .xlsx files to process");
+    }
+
+    // Xử lý file .txt
+    if (txtFiles.length > 0) {
+      let combinedData = ""; // Biến lưu trữ dữ liệu gộp từ tất cả các file .txt
+      for (const file of txtFiles) {
+        const filePath = path.join(__dirname, "../uploads", file.filename);
+        const fileExt = path.extname(file.filename).toLowerCase();
+        await fileModel.insertFileDatabase(file.filename, filePath, fileExt);
+
+        const data = fs.readFileSync(filePath, "utf-8");
+        const content = data
+          .split("\n")
+          .map((row) => row.trim())
+          .join("\n");
+
+        // Gộp dữ liệu từ tất cả các file .txt
+        combinedData += content + "\n\n";
+      }
+
+      // Nếu có dữ liệu gộp được, chuyển thành PDF
+      if (combinedData) {
+        const pdfFilePath = path.join(
+          __dirname,
+          "../merge",
+          "combined_output.txt.pdf" // Tên file PDF đầu ra
+        );
+
+        // Chuyển đổi dữ liệu đã gộp thành PDF
+        await fileModel.convertTextToPDF(combinedData, pdfFilePath);
+      }
+    } else {
+      console.log("No .txt files to process");
+    }
+
+    // Xử lý file .pdf
+    if (pdfFiles.length > 0) {
+      for (const file of pdfFiles) {
+        const filePath = path.join(__dirname, "../uploads", file.filename);
+        const fileExt = path.extname(file.filename).toLowerCase();
+
+        await fileModel.updateFileDatabase(
+          file.filename,
+          filePath,
+          fileExt,
+          id
+        );
+        // Thêm file PDF vào merger
+
+        await merger.add(filePath);
+      }
+
+      // Tạo file PDF gộp hoàn chỉnh
+      const mergedPDFPath = path.join(
+        __dirname,
+        "../mergepdf",
+        "combined_output.pdf"
+      );
+      await merger.save(mergedPDFPath);
+      await fileModel.sendFile(mergedPDFPath);
+    } else {
+      console.log("No .pdf files to process");
     }
   }
 }

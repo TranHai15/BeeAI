@@ -14,28 +14,12 @@ const dataController = {
 
     // For testing purpose, returning markdown text
     const test = `
-      # Đây là Heading 1 
-      ## Đây là Heading 2 
-      ### Đây là Heading 3
-      #### Đây là Heading 4
-      **Đây là văn bản in đậm.** 
-      *Đây là văn bản in nghiêng.* 
-      [Đây là một liên kết](https://www.example.com)
-      ![Đây là một hình ảnh](https://via.placeholder.com/150)
-      ---
-      - Đây là một danh sách
-      - Mục 2
-        - Mục con 1
-        - Mục con 2
-      ---
-      > Đây là một trích dẫn văn bản.
-      ---
-      \`Đây là một đoạn mã\`
-      ---
-      1. Mục 1 trong danh sách có thứ tự
-      2. Mục 2
-        1. Mục con 1
-        2. Mục con 2
+ | Cột 1  Cột 1  | Cột 2 Cột 1   | Cột 3  Cột 1  | Cột 4 Cột 1  | Cột 5 Cột 1   | Cột 6  Cột 1  | Cột 7  Cột 1  | Cột 8 Cột 1  | Cột 9 Cột 1  | Cột 10 Cột 1  | Cột 11 | Cột 12 |
+|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|
+| Dữ liệu 1 | Dữ liệu 2 | Dữ liệu 3 | Dữ liệu 4 | Dữ liệu 5 | Dữ liệu 6 | Dữ liệu 7 | Dữ liệu 8 | Dữ liệu 9 | Dữ liệu 10 | Dữ liệu 11 | Dữ liệu 12 |
+| Dữ liệu 1 | Dữ liệu 2 | Dữ liệu 3 | Dữ liệu 4 | Dữ liệu 5 | Dữ liệu 6 | Dữ liệu 7 | Dữ liệu 8 | Dữ liệu 9 | Dữ liệu 10 | Dữ liệu 11 | Dữ liệu 12 |
+| Dữ liệu 1 | Dữ liệu 2 | Dữ liệu 3 | Dữ liệu 4 | Dữ liệu 5 | Dữ liệu 6 | Dữ liệu 7 | Dữ liệu 8 | Dữ liệu 9 | Dữ liệu 10 | Dữ liệu 11 | Dữ liệu 12 |
+
     `;
 
     // Simulate delay and return test markdown content
@@ -96,7 +80,7 @@ const dataController = {
       const data = {
         NumberUser: numberUser,
         NumberActiveUser: numberActiveUser,
-        NumberHistoryChat: numberHistoryChat,
+        NumberHistoryChat: numberHistoryChat
       };
 
       res.status(200).json(data);
@@ -104,10 +88,10 @@ const dataController = {
       console.error("Error fetching account data:", error);
       res.status(500).json({
         success: false,
-        error: "Có lỗi xảy ra khi lấy thông tin tài khoản.",
+        error: "Có lỗi xảy ra khi lấy thông tin tài khoản."
       });
     }
-  },
+  }
 };
 
 export default dataController;

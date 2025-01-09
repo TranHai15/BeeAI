@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios"; // Cài đặt axios để gọi API backend
+import { useState, useEffect } from "react";
 import axiosClient from "../../../../api/axiosClient";
 // Component hiển thị danh sách file
 const FileList = () => {
@@ -16,7 +15,6 @@ const FileList = () => {
         console.error("Error fetching files", error);
       }
     };
-
     fetchFiles();
   }, []);
 
@@ -62,7 +60,7 @@ const FileList = () => {
     try {
       const response = await fetch("http://localhost:3000/file/upload", {
         method: "POST",
-        body: formData, // Gửi FormData chứa các file
+        body: formData // Gửi FormData chứa các file
       });
 
       if (response.ok) {

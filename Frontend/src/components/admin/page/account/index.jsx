@@ -129,13 +129,14 @@ const Account = () => {
               onChange={(e) =>
                 setFilters({ ...filters, email: e.target.value })
               }
-              className="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <select
               value={filters.status}
               onChange={(e) =>
                 setFilters({ ...filters, status: e.target.value })
               }
+              // helow ban  ban can gì toi co the gip ban
               className="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Tất cả trạng thái</option>

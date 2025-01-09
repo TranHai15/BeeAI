@@ -17,7 +17,7 @@ const fileController = {
       );
       res.send({
         message: "Files uploaded and merged successfully",
-        mergedFile: mergedFilePath,
+        mergedFile: mergedFilePath
       });
     } catch (error) {
       console.error(error);
@@ -76,6 +76,9 @@ const fileController = {
       const fileContent = fs.readFileSync(filePath, "utf-8");
       return res.json({ type: "txt", content: fileContent });
     }
+    if (file.file_type === ".pdf") {
+      return res.json({ type: "pdf", content: filePath });
+    }
 
     // Nếu không phải loại file hỗ trợ, trả lỗi
     return res.status(400).send("Unsupported file type");
@@ -96,8 +99,8 @@ const fileController = {
       if (type === "txt") {
         let formattedData;
         if (typeof data === "string") {
-          console.log("string");
-          console.log("Trước khi thay thế:", JSON.stringify(data));
+          // console.log("string");
+          // console.log("Trước khi thay thế:", JSON.stringify(data));
 
           formattedData = data.replace(/\\n/g, "/\n").replace(/\\t/g, "");
         } else if (typeof data === "object") {
@@ -109,17 +112,17 @@ const fileController = {
               .replace(/VALUES/g, "<br>")
               .replace(/\),/g, "),\n");
           } else {
-            console.log("oject");
+            // console.log("oject");
             // Nếu không, chuyển thành chuỗi JSON đẹp
             formattedData = JSON.stringify(data, null, 2);
           }
         } else {
-          console.log("kihac");
+          // console.log("kihac");
           // Nếu là dữ liệu dạng khác, chuyển sang chuỗi
           formattedData = String(data);
         }
         formattedData = formattedData.replace(/\//g, "").replace(/^"|"$/g, "");
-        console.log("dulieusau", formattedData);
+        // console.log("dulieusau", formattedData);
 
         fs.writeFile(absolutePath, formattedData, "utf8", (err) => {
           if (err) {
@@ -146,7 +149,7 @@ const fileController = {
   deleteFile: async (req, res) => {
     try {
       const idUser = req.params.id; // Lấy id từ req.params thay vì req.body
-      console.log("🚀 ~ deleteFile: ~ idUser:", idUser);
+      // console.log("🚀 ~ deleteFile: ~ idUser:", idUser);
       if (!idUser) {
         return res.status(400).json("ID người dùng là bắt buộc."); // Kiểm tra ID
       }
@@ -166,6 +169,25 @@ const fileController = {
         .json({ message: "Lỗi xóa người dùng", error: error.message });
     }
   },
+  uploadsPDF: async (req, res) => {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).send({ message: "No files uploaded" });
+    }
+
+    try {
+      const id = req.body.id;
+      const mergedFilePath = await fileModel.updatePDF(req.files, id);
+      res.send({
+        message: "Files uploaded and merged successfully",
+        mergedFile: mergedFilePath
+      });
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: "Error while merging files", error: error.message });
+    }
+  }
 };
 
 export default fileController;

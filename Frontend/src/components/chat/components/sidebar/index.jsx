@@ -47,24 +47,26 @@ export default function Sidebar() {
   const newchat = () => {
     setNewChatTest((prevHistoryChat) => [
       ...prevHistoryChat,
-      { chat_id: `${cuoichuoi}`, chat_title: "New Chat" },
+      { chat_id: `${cuoichuoi}`, chat_title: "New Chat" }
     ]);
   };
-  console.log("message chwat", message);
+  // console.log("message chwat", message);
 
   const getOneChat = async (id) => {
     try {
       const res = await axiosClient.post(
         "http://localhost:3000/user/historyChat",
         {
-          id: id,
+          id: id
         }
       );
 
       if (res.status === 200 || res.status === 201) {
         const data = res.data.getChat;
         if (data.length == 0) {
-          Navigator("/notfound");
+          alert("phong ko ton tai");
+          SetMessagesChat([]);
+          Navigator("/");
           return;
         }
         SetMessagesChat(res.data.getChat);
@@ -79,13 +81,15 @@ export default function Sidebar() {
     try {
       const activeUser = JSON.parse(localStorage.getItem("active"));
       const id = activeUser.dataLogin.dataUser.id;
-      const res = await axiosClient.post("http://localhost:3000/user/chat", {
-        id: id,
-      });
+      if (id !== null) {
+        const res = await axiosClient.post("http://localhost:3000/user/chat", {
+          id: id
+        });
 
-      if (res.status === 200 || res.status === 201) {
-        setHistoryChat(res.data.getChat);
-        return;
+        if (res.status === 200 || res.status === 201) {
+          setHistoryChat(res.data.getChat);
+          return;
+        }
       }
     } catch (error) {
       console.error("Retrying... Error:", error);

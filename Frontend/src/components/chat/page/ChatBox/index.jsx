@@ -1,49 +1,55 @@
 import { useEffect, useContext, useRef } from "react";
 import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm"; // Import remark-gfm
 
 import InputMessage from "../inputMessage";
 import "./style.css";
 import { ChatContext } from "../../../../contexts/ChatContext";
 
 export default function ChatBoxConTent() {
-  const { MessageChat, isLoading } = useContext(ChatContext);
+  const { MessageChat, isLoading, roomId } = useContext(ChatContext);
   const chatEndRef = useRef(null);
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [MessageChat]);
-  // const text =
-    // "# Đây là Heading 1 \n ## Đây là Heading 2 \n ### Đây là Heading 3 \n #### Đây là Heading 4\n **Đây là văn bản in đậm.** *Đây là văn bản in nghiêng.* [Đây là một liên kết](https://www.example.com) ![Đây là một hình ảnh](https://via.placeholder.com/150) --- - Đây là một danh sách - Mục 2 - Mục con 1 - Mục con 2 --- > Đây là một trích dẫn văn bản. --- `Đây là một đoạn mã` --- 1. Mục 1 trong danh sách có thứ tự 2. Mục 2 1. Mục con 1 2. Mục con 2 ---";
+  // console.log("message", roomId);
+  const text = `helo `;
   return (
     <div className="ChatBoxConTent relative ">
-      <main className="container__message your-element">
+      <main className="container__message">
         {MessageChat.map((text, index) => (
           <div key={index}>
-            <div className=" flex gap-4">
+            <div className=" flex gap-5 justify-end">
               {text.role === "assistant" && (
-                <div className="logo__chat logo__none w-10 h-w-10">
-                  <img src="../../../../src/assets/user/logo.svg" />
-         </div>
+                <div className="logo__chat logo__none min-w-10 min-h-10">
+                  <div className="logo__chat--img">
+                    <img src="../../../../src/assets/user/logo.svg" />
+                  </div>
+                </div>
               )}
               <div
-                className={` flex ${
+                className={` flex role_admin-text ${
                   text.role === "user" ? "justify-end" : "gap-4 items-start"
                 }`}
               >
-                        <div 
+                <div
                   className={` flex ${
                     text.role === "user"
-                      ? "content__chat--user w-3/4 items-end  "
+                      ? "content__chat--user w-full "
                       : "content__chat"
                   }`}
                 >
-                  <Markdown>{text.content.trim("")}</Markdown>
+                  <Markdown remarkPlugins={[remarkGfm]}>
+                    {text.content.trim("")}
+                  </Markdown>
                 </div>
               </div>
             </div>
           </div>
         ))}
+        {/* {<Markdown remarkPlugins={[remarkGfm]}>{text ?? null}</Markdown>} */}
         {/* loadaing */}
         {isLoading && (
           <div className="flex gap-4 items-start">
@@ -62,8 +68,11 @@ export default function ChatBoxConTent() {
         <div ref={chatEndRef} />
       </main>
       {/* <Markdown>{markdown}</Markdown> */}
-      <div className="inputMessage">
-        <InputMessage />
+      {/* {!roomId && <div className="hello-world">Hello World</div>} */}
+      <div className={roomId ? `inputMessage` : "inputMessages "}>
+        <div className={roomId ? "" : "inputtet "}>
+          <InputMessage />
+        </div>
       </div>
     </div>
   );

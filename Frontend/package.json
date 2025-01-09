@@ -10,19 +10,22 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-pdf-viewer/core": "^3.12.0",
     "@syncfusion/ej2-react-spreadsheet": "^28.1.37",
     "axios": "^1.7.7",
     "chart.js": "^4.4.7",
     "dotenv": "^16.4.7",
     "json-server": "^1.0.0-beta.3",
     "jwt-decode": "^4.0.0",
+    "pdf-lib": "^1.17.1",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
-    "react-markdown": "^9.0.1",
+    "react-markdown": "^9.0.3",
     "react-router-dom": "^6.28.0",
     "react-spreadsheet": "^0.9.5",
+    "remark-gfm": "^4.0.0",
     "socket.io-client": "^4.8.1",
     "xlsx": "^0.18.5"
   },

@@ -13,7 +13,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 export default function Chat() {
   const { isSidebar } = useContext(ChatContext);
   const { isLogin, isRole } = useContext(AuthContext);
-                useEffect(() => {
+  useEffect(() => {
     // const fetchData = async () => {
     //   const data = await chatbox.getAll();
     //   // console.log("🚀 ~ fetchData ~ data:", data);
@@ -45,7 +45,7 @@ export default function Chat() {
             <Sidebar />
           </div>
         )}
-        <div className="content">
+        <div className={`${isSidebar ? "content" : "content__is"}`}>
           <header>
             <Header />
           </header>

@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Spreadsheet from "react-spreadsheet";
-import Markdown from "react-markdown";
 const ViewFile = () => {
   const path = useLocation();
 
@@ -23,7 +22,7 @@ const ViewFile = () => {
 
     const formattedData = [
       headers.map((header) => ({ value: header })), // Tiêu đề
-      ...rows,
+      ...rows
     ];
 
     return formattedData;
@@ -41,13 +40,18 @@ const ViewFile = () => {
         const fileBlob = await response.json();
         // console.log("🚀 ~ fetchFile ~ fileBlob:", fileBlob);
         const data = fileBlob.content;
-        // console.log("🚀 ~ fetchFile ~ data:", data);
+        console.log("🚀 ~ fetchFile ~ data:", data);
         setType(fileBlob.type);
         if (fileBlob.type === "xlsx") {
           const formattedData = convertDataToSpreadsheetFormat(data);
           setSpreadsheetData(formattedData);
-        } else {
+        } else if (fileBlob.type === "txt") {
           setSpreadsheetData(data);
+        } else if (fileBlob.type === "pdf") {
+          const fileName = data.split("\\").pop();
+          // console.log("🚀 ~ fetchFile ~ fileName:", fileName);
+          const fileUrl = `http://localhost:3000/uploads/${fileName}`;
+          window.location.href = fileUrl;
         }
       } catch (error) {
         console.error("Error fetching or processing file:", error);

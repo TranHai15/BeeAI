@@ -3,7 +3,7 @@ import NotFound from "../../../notFound";
 import Account from "../../page/account";
 import Dashboard from "../../page/dashboard";
 import Question from "../../page/question";
-import FileUpload from "../../page/file";
+// import FileUpload from "../../page/file";
 import "./style.css";
 import FileList from "../../page/listfile";
 import ViewFile from "../../page/listfile/viewFile";
@@ -19,8 +19,7 @@ export default function Main() {
         <Route path="/file" element={<FileList />} />
         <Route path="/file/:id" element={<ViewFile />} />
         <Route path="/files/:id" element={<EditFile />} />
-        {/* <Route path="/listFile" element={<FileList />} /> */}
-        {/* <Route path="/viewFile" element={<ViewFile />} /> */}
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

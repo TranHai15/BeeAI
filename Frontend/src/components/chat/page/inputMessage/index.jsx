@@ -3,7 +3,6 @@ import { flushSync } from "react-dom";
 import "./style.css";
 import { ChatContext } from "../../../../contexts/ChatContext";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
 import axiosClient from "../../../../api/axiosClient";
 export default function InputMessage() {
   const {
@@ -14,7 +13,7 @@ export default function InputMessage() {
     SetMessagesChat,
     setIsSending,
     setRoomId,
-    setIsLoading,
+    setIsLoading
   } = useContext(ChatContext);
 
   const navigate = useNavigate();
@@ -46,31 +45,35 @@ export default function InputMessage() {
     const ContentModal = {
       role: "system",
       content:
-        "Bạn là một trợ lí ảo của trường 'Cao đẳng FPT Polytechnic'. Dưới đây là các thông tin về bạn:\n1. Bạn tên là '13Bee'.Trong đó: Số '13' là số ưa thích của 'Tập đoàn FPT', 'Bee' là 'linh vật' của trường 'Cao đẳng FPT Polytechnic'. Bạn là một trợ lí ảo của trường 'Cao đẳng FPT Polytechnic'.\n2. Bạn được tạo ra vào ngày '01/10/2024'. Người tạo ra bạn là 'AnTrc2'.\n3. Nhiệm vụ của bạn là giúp sinh viên hỏi đáp về trường một cách chính xác.\n4. Trả lời một cách ngắn, đầy đủ.\n5. Khi nhận được lời chào, hãy đáp lại một cách lịch sự\nNhững từ tôi cho vào trong '' thì cho vào trong '**'",
+        "Bạn là một trợ lí ảo của trường 'Cao đẳng FPT Polytechnic'. Dưới đây là các thông tin về bạn:\n1. Bạn tên là '13Bee'.Trong đó: Số '13' là số ưa thích của 'Tập đoàn FPT', 'Bee' là 'linh vật' của trường 'Cao đẳng FPT Polytechnic'. Bạn là một trợ lí ảo của trường 'Cao đẳng FPT Polytechnic'.\n2. Bạn được tạo ra vào ngày '01/10/2024'. Người tạo ra bạn là 'AnTrc2'.\n3. Nhiệm vụ của bạn là giúp sinh viên hỏi đáp về trường một cách chính xác.\n4. Trả lời một cách ngắn, đầy đủ.\n5. Khi nhận được lời chào, hãy đáp lại một cách lịch sự\nNhững từ tôi cho vào trong '' thì cho vào trong '**'"
     };
 
     const dataMessage = {
       messages: [
         ContentModal,
         ...MessageChat,
-        { role: "user", content: message },
-      ],
+        { role: "user", content: message }
+      ]
     };
     try {
-      const response = await fetch(
-        "http://localhost:3000/api/chat",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(dataMessage),
-        }
-      );
+      const apiUrl = import.meta.env.VITE_API_URL_AL;
+      const response = await fetch(`${apiUrl}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(dataMessage)
+      });
 
       if (!response.ok) {
         throw new Error(`Server error: ${response.status}`);
       }
+      // const daya = await response.json();
+
+      // // console.log("data", daya.message);
+      // SetMessagesChat((e) => {
+      //   return [...e, { role: "assistant", content: daya.message }];
+      // });
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
@@ -95,7 +98,7 @@ export default function InputMessage() {
             if (lastMessage?.role === "assistant") {
               return [
                 ...prevMessages.slice(0, -1),
-                { ...lastMessage, content: lines },
+                { ...lastMessage, content: lines }
               ];
             }
             return [...prevMessages, { role: "assistant", content: lines }];
@@ -104,16 +107,20 @@ export default function InputMessage() {
       }
       await InsertMessageUser(roomIdLoca.current, {
         role: "user",
-        content: message,
+        content: message
       });
       await InsertMessageUser(roomIdLoca.current, {
         role: "assistant",
-        content: aiResponse,
+        content: aiResponse
       });
 
       // console.log("🚀 ~ handleResAl ~ aiResponse:", aiResponse);
     } catch (error) {
       console.error("Error:", error);
+      SetMessagesChat((prevMessages) => [
+        ...prevMessages,
+        { role: "assistant", content: "Đã có lỗi xảy ra. Vui lòng thử lại." }
+      ]);
     }
     setIsLoading(false);
     setIsSending(false);
@@ -146,7 +153,7 @@ export default function InputMessage() {
     if (!dataMessage) return;
     SetMessagesChat((prev) => [
       ...prev,
-      { role: "user", content: dataMessage },
+      { role: "user", content: dataMessage }
     ]);
     checkUrlRoom();
     setMessage("");
@@ -170,7 +177,7 @@ export default function InputMessage() {
         const res = await axiosClient.post("http://localhost:3000/user/send", {
           room: room,
           message: message,
-          id: id,
+          id: id
         });
         if (res.status === 200 || res.status === 201) {
           console.log("Message saved successfully!");
@@ -183,8 +190,8 @@ export default function InputMessage() {
     console.error("Failed to save message after 3 attempts.");
   };
   return (
-    <div className=" ">
-      <div className="flex  justify-between">
+    <div className=" inputress ">
+      <div className="flex  justify-between gap-1">
         <div className="w-[93%] relative">
           <textarea
             ref={textareaRef}
@@ -196,11 +203,12 @@ export default function InputMessage() {
             onKeyDown={clickEnter}
           />
         </div>
-        <div className="w-[5%] flex ">
-          <button type="submit" className="h-10 p-1 ml-auto">
+        <div className="min-w-11 max-w-11 flex ">
+          <button type="submit" className=" p-1 ml-auto">
             {!isSending && (
               <img
-                className="w-9 object-contain"
+                onClick={handleSummit}
+                className=" object-contain"
                 src="../../../../src/assets/svg-submit.svg"
               />
             )}
