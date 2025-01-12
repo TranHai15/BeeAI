@@ -18,7 +18,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(cookieParser()); // cookie
 app.use(
   cors({
-    origin: "http://localhost:5174", // Đảm bảo đúng domain của frontend
+    origin: "http://localhost:5173", // Đảm bảo đúng domain của frontend
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true // Quan trọng: cho phép cookie được gửi đi
   })

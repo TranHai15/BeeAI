@@ -25,6 +25,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "path": "^0.12.7",
+    "pdf-lib": "^1.17.1",
     "pdf-merger-js": "^5.1.2",
     "puppeteer": "^23.11.1",
     "react-router-dom": "^7.0.1",
