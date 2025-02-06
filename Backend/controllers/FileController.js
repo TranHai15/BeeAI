@@ -10,7 +10,6 @@ const fileController = {
     if (!req.files || req.files.length === 0) {
       return res.status(400).send({ message: "No files uploaded" });
     }
-
     try {
       const mergedFilePath = await fileModel.processFilesAndConvertPDF(
         req.files
@@ -19,6 +18,7 @@ const fileController = {
         message: "Files uploaded and merged successfully",
         mergedFile: mergedFilePath
       });
+      await fileModel.updeteSenFile();
     } catch (error) {
       console.error(error);
       res
@@ -53,7 +53,7 @@ const fileController = {
   },
   getOneFile: async (req, res) => {
     const fileId = await req.params.id;
-    // console.log("🚀 ~ getOneFile: ~ fileId:", fileId);
+    console.log("🚀 ~ getOneFile: ~ fileId:", fileId);
 
     const results = await fileModel.getOneFiles(fileId);
     // console.log("🚀 ~ getOneFile: ~ results:", results);
@@ -129,6 +129,7 @@ const fileController = {
             console.error("Error writing file:", err);
             return res.status(500).json({ message: "Failed to save file" });
           }
+          // ddd
           res.status(200).json({ message: "File saved successfully!" });
         });
       } else {
@@ -141,6 +142,7 @@ const fileController = {
         XLSX.writeFile(workbook, absolutePath); // lưu vào file với đường dẫn xác định
         res.status(200).json({ message: "Luu file thanh cong" });
       }
+      await fileModel.updeteSenFile();
     } catch (error) {
       console.error("Error saving file:", error);
       res.status(500).json({ message: "Failed to update file" });
@@ -181,6 +183,7 @@ const fileController = {
         message: "Files uploaded and merged successfully",
         mergedFile: mergedFilePath
       });
+      // await fileModel.updeteSenFile();
     } catch (error) {
       console.error(error);
       res

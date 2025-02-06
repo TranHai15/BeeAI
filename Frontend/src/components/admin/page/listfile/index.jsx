@@ -6,18 +6,17 @@ const FileList = () => {
   const [isSaving, setIsSaving] = useState(false);
   // Lấy dữ liệu từ backend
   useEffect(() => {
-    const fetchFiles = async () => {
-      try {
-        const response = await axiosClient.get("/file"); // API để lấy danh sách file
-        // console.log("🚀 ~ fetchFiles ~ response:", response.data);
-        setFiles(response.data); // Gán dữ liệu file vào state
-      } catch (error) {
-        console.error("Error fetching files", error);
-      }
-    };
     fetchFiles();
   }, []);
-
+  const fetchFiles = async () => {
+    try {
+      const response = await axiosClient.get("/file"); // API để lấy danh sách file
+      // console.log("🚀 ~ fetchFiles ~ response:", response.data);
+      setFiles(response.data); // Gán dữ liệu file vào state
+    } catch (error) {
+      console.error("Error fetching files", error);
+    }
+  };
   // Xử lý xem file
   const handleViewFile = (fileId, name) => {
     window.open(`/admin/file/${name}?id=${fileId}`, "_blank"); // Mở file trong tab mới
@@ -66,6 +65,7 @@ const FileList = () => {
       if (response.ok) {
         setIsSaving(false);
         alert("Files uploaded successfully");
+        fetchFiles();
       } else {
         alert("File upload failed");
       }

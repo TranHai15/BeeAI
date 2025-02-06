@@ -16,9 +16,9 @@ export default function Header() {
       data: {
         dataUser: "",
         refreshToken: "",
-        accessToken: "",
+        accessToken: ""
       },
-      isLogin: false,
+      isLogin: false
     };
     localStorage.setItem("active", JSON.stringify(data));
     showNotification("Đăng Xuat thành công!", "success");
