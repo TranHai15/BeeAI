@@ -300,25 +300,23 @@ class fileModel {
   static async deleteFile(id) {
     const user = new fileModel();
     await user.connect();
+    // câu lệnh để lấy ra id file muốn xóa
     const param = "Select file_path ,file_type from file_uploads where id = ?";
     try {
       const [result] = await user.connection.execute(param, [id]);
-
-      // console.log("🚀 ~ fileModel ~ deleteFile ~ result:", result[0].file_path);
-      if (
-        result[0].file_type === ".pdf" ||
-        result[0].file_type === ".txt" ||
-        result[0].file_type === ".xlsx"
-      ) {
-        const param = `Select file_path , file_type  from file_uploads where file_type = ".pdf" OR file_type = ".txt" OR file_type = ".xlsx"`;
-        try {
-          const [result] = await user.connection.execute(param);
-          await fileModel.processFiles(result);
-        } catch (error) {
-          console.error("Lỗi khi xóa người dùng:", error);
-          throw error;
-        }
+      // sau khi lấy ra đc xóa trong db luôn 
+      const query = `DELETE FROM file_uploads WHERE id = ?`;
+      try {
+        const [results] = await user.connection.execute(query, [id]);
+        console.log("File đã được xóa thành công! DB",results.affectedRows);
+        // return results.affectedRows; // Trả về số bản ghi đã xóa
+      } catch (error) {
+        console.error("Lỗi khi xóa người dùng:", error);
+        throw error;
+      } finally {
+        await user.closeConnection(); // Đóng kết nối
       }
+      // sau khi xóa trong db xong thì xóa ở ngoài dule PC
       fs.unlink(result[0].file_path, (err) => {
         if (err) {
           console.error("Lỗi khi xóa file:", err);
@@ -326,22 +324,16 @@ class fileModel {
           console.log("File đã được xóa thành công! PC");
         }
       });
+      // xóa file ở PC
+      // console.log("🚀 ~ fileModel ~ deleteFile ~ result:", result[0].file_path);
+      await fileModel.updeteSenFile();
+    
     } catch (error) {
       console.error("Lỗi khi xóa người dùng:", error);
       throw error;
     }
 
-    const query = `DELETE FROM file_uploads WHERE id = ?`;
-    try {
-      const [result] = await user.connection.execute(query, [id]);
-      console.log("File đã được xóa thành công! DB");
-      return result.affectedRows; // Trả về số bản ghi đã xóa
-    } catch (error) {
-      console.error("Lỗi khi xóa người dùng:", error);
-      throw error;
-    } finally {
-      await user.closeConnection(); // Đóng kết nối
-    }
+
   }
   static async updeteSenFile() {
     const user = new fileModel();
