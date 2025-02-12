@@ -628,6 +628,7 @@ class fileModel {
   //     console.error(error.stack);
   //   }
   // }
+  
   static async processFiles(filePaths) {
     try {
       let txtFiles = [];
