@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-
+import axiosClient from "../../../../api/axiosClient";
+import "./style.css";
 const Question = () => {
   const [questions, setQuestions] = useState([]);
   const [filteredQuestions, setFilteredQuestions] = useState([]);
@@ -7,58 +8,24 @@ const Question = () => {
   const [filters, setFilters] = useState({
     topic: "",
     startDate: "",
-    endDate: "",
+    endDate: ""
   });
 
   useEffect(() => {
     // Dữ liệu giả lập, thay bằng API thực tế
     const fetchData = async () => {
-      const fakeQuestions = [
-        {
-          id: 1,
-          question: "How to use React?",
-          topic: "React",
-          askCount: 10,
-          createdAt: "2024-12-01",
-          user: "Nguyễn Văn A",
-        },
-        {
-          id: 2,
-          question: "How to manage state in React?",
-          topic: "React",
-          askCount: 8,
-          createdAt: "2024-12-05",
-          user: "Trần Văn B",
-        },
-        {
-          id: 3,
-          question: "What is Node.js?",
-          topic: "Node.js",
-          askCount: 15,
-          createdAt: "2024-12-10",
-          user: "Lê Văn C",
-        },
-        {
-          id: 4,
-          question: "What is JavaScript?",
-          topic: "JavaScript",
-          askCount: 5,
-          createdAt: "2024-12-12",
-          user: "Nguyễn Văn A",
-        },
-        // Thêm dữ liệu câu hỏi khác...
-      ];
+      const res = await axiosClient.post("/user/topQues");
+      // console.log("🚀 ~ fetchData ~ res:", res.data);
+      setQuestions(res.data.getChatTop);
+      setFilteredQuestions(res.data.getChatTop);
 
-      const fakeUsers = [
-        { id: 1, name: "Nguyễn Văn A", askCount: 15 },
-        { id: 2, name: "Trần Văn B", askCount: 12 },
-        { id: 3, name: "Lê Văn C", askCount: 10 },
-        // Thêm người dùng khác...
-      ];
-
-      setQuestions(fakeQuestions);
-      setFilteredQuestions(fakeQuestions);
-      setUsers(fakeUsers);
+      // const fakeUsers = [
+      //   { id: 1, name: "Nguyễn Văn A", askCount: 15 },
+      //   { id: 2, name: "Trần Văn B", askCount: 12 },
+      //   { id: 3, name: "Lê Văn C", askCount: 10 }
+      //   // Thêm người dùng khác...
+      // ];
+      // setUsers(fakeUsers);
     };
 
     fetchData();
@@ -68,9 +35,9 @@ const Question = () => {
     let filtered = [...questions];
 
     // Lọc theo chủ đề
-    if (filters.topic) {
+    if (filters.content) {
       filtered = filtered.filter((question) =>
-        question.topic.toLowerCase().includes(filters.topic.toLowerCase())
+        question.content.toLowerCase().includes(filters.content.toLowerCase())
       );
     }
 
@@ -93,9 +60,9 @@ const Question = () => {
   const handleSort = (order) => {
     let sorted = [...filteredQuestions];
     if (order === "asc") {
-      sorted.sort((a, b) => a.askCount - b.askCount); // Sắp xếp tăng dần
+      sorted.sort((a, b) => a.frequency - b.frequency); // Sắp xếp tăng dần
     } else {
-      sorted.sort((a, b) => b.askCount - a.askCount); // Sắp xếp giảm dần
+      sorted.sort((a, b) => b.frequency - a.frequency); // Sắp xếp giảm dần
     }
     setFilteredQuestions(sorted);
   };
@@ -104,7 +71,7 @@ const Question = () => {
     setFilters({
       topic: "",
       startDate: "",
-      endDate: "",
+      endDate: ""
     });
     setFilteredQuestions(questions);
   };
@@ -113,6 +80,19 @@ const Question = () => {
     // Mở chi tiết câu hỏi, có thể dùng modal hoặc chuyển trang
     alert(`Xem chi tiết câu hỏi ID: ${id}`);
   };
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredQuestions.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  function formatDate(dateString) {
+    // Cắt phần '000Z' và thay 'T' bằng khoảng trắng
+    const formattedDate = dateString.replace("T", " ").slice(0, -5);
+    return formattedDate;
+  }
 
   return (
     <div className="flex justify-center">
@@ -124,9 +104,9 @@ const Question = () => {
             <input
               type="text"
               placeholder="Lọc theo chủ đề"
-              value={filters.topic}
+              value={filters.content}
               onChange={(e) =>
-                setFilters({ ...filters, topic: e.target.value })
+                setFilters({ ...filters, content: e.target.value })
               }
               className="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -186,26 +166,28 @@ const Question = () => {
               <tr className="bg-gray-200">
                 <th className="p-3 border">#</th>
                 <th className="p-3 border">Câu hỏi</th>
-                <th className="p-3 border">Chủ đề</th>
                 <th className="p-3 border">Lượt hỏi</th>
                 <th className="p-3 border">Ngày tạo</th>
                 <th className="p-3 border">Chi tiết</th>
               </tr>
             </thead>
             <tbody>
-              {filteredQuestions.map((question, index) => (
-                <tr key={question.id} className="hover:bg-gray-100">
-                  <td className="p-3 border">{index + 1}</td>
-                  <td className="p-3 border">{question.question}</td>
-                  <td className="p-3 border">{question.topic}</td>
-                  <td className="p-3 border">{question.askCount}</td>
-                  <td className="p-3 border">
-                    {new Date(question.createdAt).toLocaleDateString()}
+              {currentItems.map((question, index) => (
+                <tr key={index} className="hover:bg-gray-100">
+                  <td className="p-3 border-none">{question.id}</td>
+                  <td className=" limit-lines border-none">
+                    {question.content}
                   </td>
-                  <td className="p-3 border">
+                  <td className="p-3 border min-w-max border-none">
+                    {question.frequency}
+                  </td>
+                  <td className="p-3 border min-w-24 border-none">
+                    {formatDate(question.first_asked_at)}
+                  </td>
+                  <td className="p-3 border limit-lines border-none">
                     <button
                       onClick={() => handleDetail(question.id)}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 min-w-max border-none"
                     >
                       Chi tiết
                     </button>
@@ -214,10 +196,31 @@ const Question = () => {
               ))}
             </tbody>
           </table>
+          {/* Phân trang */}
+          {currentItems && (
+            <div className="mt-4 flex justify-center gap-4">
+              {Array.from(
+                { length: Math.ceil(filteredQuestions.length / itemsPerPage) },
+                (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`px-4 py-2 rounded-md ${
+                      currentPage === i + 1
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-300 text-black"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                )
+              )}
+            </div>
+          )}
         </div>
 
         {/* Top người dùng hỏi nhiều nhất */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        {/* <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">Top Người Dùng</h2>
           <ul>
             {users
@@ -232,7 +235,7 @@ const Question = () => {
                 </li>
               ))}
           </ul>
-        </div>
+        </div> */}
       </div>
     </div>
   );

@@ -36,19 +36,17 @@ const authController = {
 
   // Tạo access token
   createAccessToken: (user) => {
-    console.log("cap lai accests");
     return jwt.sign(
-      { id: user.id, role: user.role_id },
+      { id: user.id, role_id: user.role_id },
       process.env.JWT_ACCESS_TOKEN,
-      { expiresIn: "60s" }
+      { expiresIn: "30s" }
     );
   },
 
   // Tạo refresh token
   createRefreshToken: (user) => {
-    console.log("cap lai reftoken");
     return jwt.sign(
-      { id: user.id, role: user.role_id },
+      { id: user.id, role_id: user.role_id },
       process.env.JWT_REFRESH_TOKEN,
       { expiresIn: "365d" }
     );
@@ -62,7 +60,7 @@ const authController = {
       return res.status(400).json({
         All: "Email và mật khẩu là bắt buộc.",
         email: "",
-        password: "",
+        password: ""
       });
     }
 
@@ -73,7 +71,7 @@ const authController = {
         return res.status(400).json({
           All: "",
           email: "Email không tồn tại.",
-          password: "",
+          password: ""
         });
       }
 
@@ -83,7 +81,7 @@ const authController = {
         return res.status(401).json({
           All: "",
           email: "",
-          password: "Mật khẩu sai",
+          password: "Mật khẩu sai"
         });
       }
 
@@ -95,7 +93,6 @@ const authController = {
         refreshToken = session[0].refresh_token;
         const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
         await User.updateSession(user.id, accessToken, refreshToken, expiresAt);
-        console.log("🚀 ~ loginUser: ~ refreshToken:", refreshToken);
       } else {
         accessToken = authController.createAccessToken(user);
         refreshToken = authController.createRefreshToken(user);
@@ -115,7 +112,7 @@ const authController = {
       res.status(200).json({
         dataUser: userData,
         accessToken: accessToken,
-        refreshToken: refreshToken,
+        refreshToken: refreshToken
       });
     } catch (error) {
       // console.log(error);
@@ -126,8 +123,6 @@ const authController = {
   // Refresh token
   requestRefreshToken: async (req, res) => {
     const refreshToken = req.body.refreshToken;
-    console.log("🚀 ~ requestRefreshToken: ~ refreshToken:", refreshToken);
-
     if (!refreshToken) {
       return res
         .status(401)
@@ -136,15 +131,11 @@ const authController = {
 
     try {
       const session = await User.getSessionByUserId(req.body.id, true);
-      // console.log("🚀 ~ requestRefreshToken: ~ session:", session);
       const tokenExists = session[0]?.refresh_token === refreshToken;
-      // console.log("🚀 ~ requestRefreshToken: ~ refreshToken:", refreshToken);
-      // console.log("🚀 ~ requestRefreshToken: ~ tokenExists:", tokenExists);
-
       if (!tokenExists) {
         return res.status(403).json({
           code: "INVALID_REFRESH_TOKEN",
-          message: "Token này không phải là của tôi.",
+          message: "Token này không phải là của tôi."
         });
       }
 
@@ -156,21 +147,22 @@ const authController = {
             console.log(error);
             return res.status(403).json({
               code: "REFRESH_TOKEN_EXPIRED",
-              message: "Refresh token không hợp lệ hoặc đã hết hạn.",
+              message: "Refresh token không hợp lệ hoặc đã hết hạn."
             });
           }
 
           // Tạo mới AccessToken và RefreshToken
+          console.log("user", user);
           const newAccessToken = authController.createAccessToken(user);
           const newRefreshToken = authController.createRefreshToken(user);
-          console.log("🚀 ~ newRefreshToken:", newRefreshToken);
+          // console.log("🚀 ~ newRefreshToken:", newRefreshToken);
 
           // Cập nhật RefreshToken mới vào database
           await User.updateRefreshToken(user.id, newRefreshToken);
 
           res.status(200).json({
             accessToken: newAccessToken,
-            refreshToken: newRefreshToken,
+            refreshToken: newRefreshToken
           });
         }
       );
@@ -178,7 +170,7 @@ const authController = {
       console.error("Lỗi khi refresh token:", error);
       res.status(500).json({
         code: "SERVER_ERROR",
-        message: "Đã xảy ra lỗi khi yêu cầu refresh token.",
+        message: "Đã xảy ra lỗi khi yêu cầu refresh token."
       });
     }
   },
@@ -190,7 +182,7 @@ const authController = {
     // await User.deleteSession(req.body.id);
     // res.clearCookie("refreshToken");
     res.status(200).json("Đăng xuất thành công.");
-  },
+  }
 };
 
 export default authController;

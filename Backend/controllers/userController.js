@@ -3,15 +3,13 @@ import axios from "axios";
 
 // Quản lý người dùng
 const dataUser = {
-  // Lấy toàn bộ người dùng
-  getAllusers: async (req, res) => {
+  getAllUsers: async (req, res) => {
     try {
       const dataAllUser = await User.getUsers();
 
       if (!dataAllUser) {
         return res.status(404).json({ message: "Không tìm thấy người dùng." });
       }
-      // console.log("useer", dataAllUser);
       return res.status(200).json(dataAllUser);
     } catch (error) {
       return res.status(500).json("Lỗi truy vấn dataUser");
@@ -58,9 +56,9 @@ const dataUser = {
         .json({ message: "Lỗi lay lich su chat", error: error.message });
     }
   },
-  getAllTopCauhoi: async (req, res) => {
+  getAllTopCauHoi: async (req, res) => {
     try {
-      const getChatTop = await User.getAllTopQuesun();
+      const getChatTop = await User.getAllTopQen();
       // console.log("message: Lay thành công");
       return res.status(200).json({ getChatTop });
     } catch (error) {
@@ -84,7 +82,7 @@ const dataUser = {
     } catch (error) {
       return res.status(500).json({
         message: "Lỗi lay lich su chat chi tiet",
-        error: error.message,
+        error: error.message
       });
     }
   },
@@ -125,7 +123,7 @@ const dataUser = {
           success: true,
           message: "Đã thêm tin nhắn vào phòng hiện có",
           data: insertOneChat,
-          title: title,
+          title: title
         });
       } else {
         // Nếu phòng chưa tồn tại, tạo phòng mới và thêm tin nhắn
@@ -142,12 +140,12 @@ const dataUser = {
             success: true,
             message: "Phòng mới đã được tạo và tin nhắn đã được thêm",
             data: insertOneChat,
-            title: title,
+            title: title
           });
         } else {
           return res.status(500).json({
             success: false,
-            message: "Không thể tạo phòng mới",
+            message: "Không thể tạo phòng mới"
           });
         }
       }
@@ -156,7 +154,7 @@ const dataUser = {
       return res.status(500).json({
         success: false,
         message: "Lỗi lấy lịch sử chat",
-        error: error.message,
+        error: error.message
       });
     }
   },
@@ -174,10 +172,10 @@ const dataUser = {
     } catch (error) {
       return res.status(500).json({
         message: "Lỗi lay lich su chat chi tiet",
-        error: error.message,
+        error: error.message
       });
     }
-  },
+  }
 };
 
 export default dataUser;

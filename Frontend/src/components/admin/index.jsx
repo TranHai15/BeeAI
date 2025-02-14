@@ -25,11 +25,11 @@ export default function Admin() {
           const token = activeUser.dataLogin?.accessToken;
           if (token) {
             const decoded = jwtDecode(token);
-            console.log("🚀 ~ checkLoginStatus ~ decoded:", decoded);
-            const { role } = decoded;
-            console.log("🚀 ~ checkLoginStatus ~ role:", role);
-            setIsRole(role);
-            if (role === 1) {
+            // console.log("🚀 ~ checkLoginStatus ~ decoded:", decoded);
+            const { role_id } = decoded;
+            // console.log("🚀 ~ checkLoginStatus ~ role:", role_id);
+            setIsRole(role_id);
+            if (role_id === 1) {
               return;
             } else {
               Navigator("/");
@@ -45,7 +45,7 @@ export default function Admin() {
         console.error("Error decoding token:", error);
         setIsLogin(false); // Đảm bảo trạng thái chính xác khi gặp lỗi
       } finally {
-        console.log("message");
+        // console.log("message");
       }
     };
 

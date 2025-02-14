@@ -33,6 +33,7 @@ import authRouter from "./routes/authRoutes.js";
 import userRouter from "./routes/userRoter.js"; // Sửa lỗi chính tả ở đây
 import dataRouter from "./routes/dataRoutes.js";
 import fileRouter from "./routes/fileRouter.js";
+import test from "./routes/testRouter.js";
 
 app.get("/", (req, res) => {
   console.log("cookie", req.cookies); // In tất cả các cookies
@@ -46,7 +47,8 @@ app.use("/user", userRouter);
 // Sử dụng dataRouter cho các route bắt đầu bằng /api
 app.use("/api", dataRouter);
 // Sử dụng fileRouter cho các route bắt đầu bằng /file
-app.use("/file", fileRouter);
+// app.use("/file", fileRouter);
+app.use("/file", test);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

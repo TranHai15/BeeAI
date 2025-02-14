@@ -18,7 +18,6 @@ const fileController = {
         message: "Files uploaded and merged successfully",
         mergedFile: mergedFilePath
       });
-      await fileModel.updeteSenFile();
     } catch (error) {
       console.error(error);
       res
@@ -159,9 +158,9 @@ const fileController = {
       const deleteCount = await fileModel.deleteFile(idUser); // Gọi hàm delete
 
       // if (deleteCount > 0) {
-        return res
-          .status(200)
-          .json({ message: "Xóa thành công", deletedCount: deleteCount });
+      return res
+        .status(200)
+        .json({ message: "Xóa thành công", deletedCount: deleteCount });
       // } else {
       //   return res.status(404).json("Không tìm thấy người dùng để xóa.");
       // }
@@ -179,7 +178,7 @@ const fileController = {
     try {
       const id = req.body.id;
       const mergedFilePath = await fileModel.updatePDF(req.files, id);
-      console.log(mergedFilePath)
+      console.log(mergedFilePath);
       res.send({
         message: "Files uploaded and merged successfully",
         mergedFile: mergedFilePath

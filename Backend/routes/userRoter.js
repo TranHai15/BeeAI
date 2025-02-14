@@ -9,13 +9,13 @@ import middlewares from "../middlewares/authenticateToken.js";
 import dataUser from "../controllers/userController.js";
 
 // Lấy toàn bộ người dùng
-router.get("/", middlewares.verifyToken, dataUser.getAllusers);
+router.get("/", middlewares.verifyToken, dataUser.getAllUsers);
 
 // Lấy lịch sử chat của người dùng
 router.post("/chat/", dataUser.getAllChat);
 router.get("/oneData/:id", dataUser.getOneChat);
 router.get("/oneDataadmin/:id", dataUser.getAllChatAdmin);
-router.post("/topquesun", dataUser.getAllTopCauhoi);
+router.post("/topQues", dataUser.getAllTopCauHoi);
 router.post("/historyChat", dataUser.getAllChatByIdRoom);
 
 // Thêm dữ liệu vào database

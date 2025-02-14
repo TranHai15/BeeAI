@@ -34,7 +34,7 @@ class User {
         name,
         password,
         email,
-        role,
+        role
       ]);
       console.log("User added:", result.insertId);
       return result.insertId; // Trả về ID của người dùng đã thêm
@@ -72,26 +72,12 @@ class User {
   static async getUsers() {
     const user = new User();
     await user.connect();
-
-    const query = `SELECT 
-    a.id AS account_id,
-    a.username, 
-    a.email,
-    MIN(c.id) AS chat_id,
-    MIN(c.chat_title) AS chat_title -- Sử dụng MIN hoặc MAX
-FROM 
-    account AS a
-LEFT JOIN 
-    chat_history AS c 
-ON 
-    a.id = c.id
-GROUP BY 
-    a.id, a.username, a.email;
+    const query = `SELECT a.*, u.access_token AS statuss FROM account a Left JOIN user_sessions u ON u.id = a.id
+;
 `;
-
     try {
       const [rows] = await user.connection.execute(query);
-      return rows; // Trả về tất cả người dùng
+      return rows;
     } catch (error) {
       console.error("Không lấy được dữ liệu người dùng:", error);
       throw error;
@@ -133,19 +119,17 @@ ORDER BY
   }
 
   // lấy ra 10 cau hỏi đc sử dụng nhiều nhất
-  static async getAllTopQuesun() {
+  static async getAllTopQen() {
     const user = new User();
     await user.connect();
 
-    const query = `SELECT 
-    content, 
-    COUNT(*) AS question_count,
-    MIN(create_at) AS createAt
+    const query = `SELECT content, MIN(id) AS example_id, MIN(create_at) AS first_asked_at, COUNT(*) AS frequency
 FROM chat_history_detail
-WHERE role = 'user'
 GROUP BY content
-ORDER BY question_count DESC
-LIMIT 10`;
+ORDER BY frequency DESC;
+;
+;
+`;
     try {
       const [rows] = await user.connection.execute(query);
       return rows;
@@ -339,7 +323,7 @@ LIMIT 10`;
     try {
       const [result] = await user.connection.execute(query, [
         newRefreshToken,
-        userId,
+        userId
       ]);
       return result.affectedRows > 0; // Trả về true nếu có bản ghi được cập nhật
     } catch (error) {

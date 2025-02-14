@@ -304,11 +304,11 @@ class fileModel {
     const param = "Select file_path ,file_type from file_uploads where id = ?";
     try {
       const [result] = await user.connection.execute(param, [id]);
-      // sau khi lấy ra đc xóa trong db luôn 
+      // sau khi lấy ra đc xóa trong db luôn
       const query = `DELETE FROM file_uploads WHERE id = ?`;
       try {
         const [results] = await user.connection.execute(query, [id]);
-        console.log("File đã được xóa thành công! DB",results.affectedRows);
+        console.log("File đã được xóa thành công! DB", results.affectedRows);
         // return results.affectedRows; // Trả về số bản ghi đã xóa
       } catch (error) {
         console.error("Lỗi khi xóa người dùng:", error);
@@ -327,13 +327,10 @@ class fileModel {
       // xóa file ở PC
       // console.log("🚀 ~ fileModel ~ deleteFile ~ result:", result[0].file_path);
       await fileModel.updeteSenFile();
-    
     } catch (error) {
       console.error("Lỗi khi xóa người dùng:", error);
       throw error;
     }
-
-
   }
   static async updeteSenFile() {
     const user = new fileModel();
@@ -628,7 +625,7 @@ class fileModel {
   //     console.error(error.stack);
   //   }
   // }
-  
+
   static async processFiles(filePaths) {
     try {
       let txtFiles = [];

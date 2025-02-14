@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import axiosClient from "../../../../api/axiosClient";
 const Account = () => {
   const [users, setUsers] = useState([]); // Dữ liệu người dùng
   const [filteredUsers, setFilteredUsers] = useState([]); // Dữ liệu sau khi lọc
@@ -8,7 +8,7 @@ const Account = () => {
     email: "",
     status: "all", // "online", "offline", "all"
     startDate: "",
-    endDate: "",
+    endDate: ""
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,35 +17,9 @@ const Account = () => {
   useEffect(() => {
     // Dữ liệu giả lập, thay bằng API thực tế
     const fetchUsers = async () => {
-      const fakeUsers = [
-        {
-          id: 1,
-          name: "Nguyễn Văn A",
-          email: "a@gmail.com",
-          role: "Admin",
-          status: "online",
-          createdAt: "2024-12-01",
-        },
-        {
-          id: 2,
-          name: "Trần Văn B",
-          email: "b@gmail.com",
-          role: "User",
-          status: "offline",
-          createdAt: "2024-12-10",
-        },
-        {
-          id: 3,
-          name: "Lê Văn C",
-          email: "c@gmail.com",
-          role: "Editor",
-          status: "online",
-          createdAt: "2024-12-15",
-        },
-        // Thêm dữ liệu khác...
-      ];
-      setUsers(fakeUsers);
-      setFilteredUsers(fakeUsers);
+      const res = await axiosClient.get("/user/");
+      setUsers(res.data);
+      setFilteredUsers(res.data);
     };
 
     fetchUsers();
@@ -72,7 +46,11 @@ const Account = () => {
 
     // Lọc theo trạng thái
     if (filters.status !== "all") {
-      filtered = filtered.filter((user) => user.status === filters.status);
+      if (filters.status == "null") {
+        filtered = filtered.filter((user) => user.statuss == null);
+      } else {
+        filtered = filtered.filter((user) => user.statuss !== null);
+      }
     }
 
     // Lọc theo ngày tháng
@@ -97,7 +75,7 @@ const Account = () => {
       email: "",
       status: "all",
       startDate: "",
-      endDate: "",
+      endDate: ""
     });
     setFilteredUsers(users);
     setCurrentPage(1);
@@ -129,7 +107,7 @@ const Account = () => {
               onChange={(e) =>
                 setFilters({ ...filters, email: e.target.value })
               }
-                              className="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <select
               value={filters.status}
@@ -140,8 +118,8 @@ const Account = () => {
               className="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Tất cả trạng thái</option>
-              <option value="online">Đang hoạt động</option>
-              <option value="offline">Không hoạt động</option>
+              <option value="o">Đang hoạt động</option>
+              <option value="null">Không hoạt động</option>
             </select>
             <input
               type="date"
@@ -192,14 +170,14 @@ const Account = () => {
             <tbody>
               {currentItems.map((user, index) => (
                 <tr key={user.id} className="hover:bg-gray-100">
-                  <td className="p-3 border">{indexOfFirstItem + index + 1}</td>
-                  <td className="p-3 border">{user.name}</td>
+                  <td className="p-3 border">{index + 1}</td>
+                  <td className="p-3 border">{user.username}</td>
                   <td className="p-3 border">{user.email}</td>
-                  <td className="p-3 border">{user.role}</td>
                   <td className="p-3 border">
-                    {user.status === "online"
-                      ? "Đang hoạt động"
-                      : "Không hoạt động"}
+                    {user.role_id === 1 ? " Admin" : " User"}
+                  </td>
+                  <td className="p-3 border">
+                    {user.statuss ? "Đang hoạt động" : "Không hoạt động"}
                   </td>
                   <td className="p-3 border">
                     <button className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 mr-2">
@@ -218,24 +196,26 @@ const Account = () => {
           </table>
 
           {/* Phân trang */}
-          <div className="mt-4 flex justify-center gap-4">
-            {Array.from(
-              { length: Math.ceil(filteredUsers.length / itemsPerPage) },
-              (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`px-4 py-2 rounded-md ${
-                    currentPage === i + 1
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-300 text-black"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              )
-            )}
-          </div>
+          {currentItems.length > 10 && (
+            <div className="mt-4 flex justify-center gap-4">
+              {Array.from(
+                { length: Math.ceil(filteredUsers.length / itemsPerPage) },
+                (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`px-4 py-2 rounded-md ${
+                      currentPage === i + 1
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-300 text-black"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                )
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

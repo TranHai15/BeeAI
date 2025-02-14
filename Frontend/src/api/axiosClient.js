@@ -1,5 +1,4 @@
 import axios from "axios";
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const refreshAccessToken = async () => {
@@ -16,7 +15,7 @@ const refreshAccessToken = async () => {
     // console.log("cap lai token");
     const response = await axiosClient.post("/auth/refresh", {
       id: id,
-      refreshToken: refreshToken,
+      refreshToken: refreshToken
     });
 
     if (response.status !== 200) {
@@ -34,8 +33,8 @@ const refreshAccessToken = async () => {
       dataLogin: {
         dataUser: activeUser.dataLogin.dataUser,
         accessToken: accessToken,
-        refreshToken: newRefreshToken,
-      },
+        refreshToken: newRefreshToken
+      }
     };
     localStorage.setItem("active", JSON.stringify(updatedUserData));
 
@@ -57,8 +56,8 @@ const refreshAccessToken = async () => {
 const axiosClient = axios.create({
   baseURL: "http://localhost:3000",
   headers: {
-    "Content-Type": "application/json",
-  },
+    "Content-Type": "application/json"
+  }
 });
 
 // Interceptor để thêm accessToken vào header
@@ -73,6 +72,7 @@ axiosClient.interceptors.request.use(
     ) {
       const activeUser = JSON.parse(localStorage.getItem("active"));
       const accessToken = activeUser.dataLogin.accessToken;
+      const id = activeUser?.dataLogin?.dataUser?.id;
 
       // Kiểm tra nếu không có accessToken, chuyển hướng đến trang login hoặc xử lý lỗi
       if (!accessToken) {
@@ -83,6 +83,12 @@ axiosClient.interceptors.request.use(
 
       // Nếu có accessToken, thêm vào header Authorization
       config.headers["Authorization"] = `Bearer ${accessToken}`;
+      config.headers["MS"] = id;
+      // if (
+      //   ["post", "put", "patch", "delete"].includes(config.method.toLowerCase())
+      // ) {
+      //   config.data = { ...config.data, userId: id };
+      // }
     }
     return config;
   },

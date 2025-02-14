@@ -34,7 +34,10 @@ export default function Sidebar() {
       newchat();
       localStorage.removeItem("room");
     } else {
-      getOneChat(id);
+      console.log("🚀 ~ useEffect ~ id:", id);
+      if (id) {
+        getOneChat(id);
+      }
       setNewChatTest([]);
     }
     getAllChat();
