@@ -1,98 +1,74 @@
 import { useState, useEffect } from "react";
 import axiosClient from "../../../../api/axiosClient";
 import "./style.css";
+
 const Question = () => {
   const [questions, setQuestions] = useState([]);
+  console.log("🚀 ~ Question ~ questions:", questions);
   const [filteredQuestions, setFilteredQuestions] = useState([]);
-  const [users, setUsers] = useState([]);
   const [filters, setFilters] = useState({
-    topic: "",
+    content: "",
     startDate: "",
     endDate: ""
   });
 
+  const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
+  const [questionsPerPage] = useState(10); // Số lượng câu hỏi mỗi trang
+
   useEffect(() => {
-    // Dữ liệu giả lập, thay bằng API thực tế
     const fetchData = async () => {
       const res = await axiosClient.post("/user/topQues");
-      // console.log("🚀 ~ fetchData ~ res:", res.data);
       setQuestions(res.data.getChatTop);
       setFilteredQuestions(res.data.getChatTop);
-
-      // const fakeUsers = [
-      //   { id: 1, name: "Nguyễn Văn A", askCount: 15 },
-      //   { id: 2, name: "Trần Văn B", askCount: 12 },
-      //   { id: 3, name: "Lê Văn C", askCount: 10 }
-      //   // Thêm người dùng khác...
-      // ];
-      // setUsers(fakeUsers);
     };
-
     fetchData();
   }, []);
 
-  const handleFilter = () => {
+  useEffect(() => {
     let filtered = [...questions];
 
-    // Lọc theo chủ đề
-    if (filters.content) {
-      filtered = filtered.filter((question) =>
-        question.content.toLowerCase().includes(filters.content.toLowerCase())
+    if (filters.content.trim()) {
+      filtered = filtered.filter((q) =>
+        q.content.toLowerCase().includes(filters.content.toLowerCase())
       );
     }
 
-    // Lọc theo ngày
     if (filters.startDate) {
+      const start = new Date(filters.startDate).getTime();
       filtered = filtered.filter(
-        (question) =>
-          new Date(question.createdAt) >= new Date(filters.startDate)
+        (q) => new Date(q.createdAt).getTime() >= start
       );
     }
+
     if (filters.endDate) {
-      filtered = filtered.filter(
-        (question) => new Date(question.createdAt) <= new Date(filters.endDate)
-      );
+      const end = new Date(filters.endDate).getTime();
+      filtered = filtered.filter((q) => new Date(q.createdAt).getTime() <= end);
     }
 
     setFilteredQuestions(filtered);
-  };
-
-  const handleSort = (order) => {
-    let sorted = [...filteredQuestions];
-    if (order === "asc") {
-      sorted.sort((a, b) => a.frequency - b.frequency); // Sắp xếp tăng dần
-    } else {
-      sorted.sort((a, b) => b.frequency - a.frequency); // Sắp xếp giảm dần
-    }
-    setFilteredQuestions(sorted);
-  };
+  }, [filters, questions]);
 
   const handleReset = () => {
-    setFilters({
-      topic: "",
-      startDate: "",
-      endDate: ""
-    });
-    setFilteredQuestions(questions);
+    setFilters({ content: "", startDate: "", endDate: "" });
   };
 
-  const handleDetail = (id) => {
-    // Mở chi tiết câu hỏi, có thể dùng modal hoặc chuyển trang
-    alert(`Xem chi tiết câu hỏi ID: ${id}`);
+  const formatDate = (dateString) => {
+    return dateString.replace("T", " ").slice(0, -5);
   };
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredQuestions.slice(
-    indexOfFirstItem,
-    indexOfLastItem
+
+  // Tính toán câu hỏi cần hiển thị
+  const indexOfLastQuestion = currentPage * questionsPerPage;
+  const indexOfFirstQuestion = indexOfLastQuestion - questionsPerPage;
+  const currentQuestions = filteredQuestions.slice(
+    indexOfFirstQuestion,
+    indexOfLastQuestion
   );
-  function formatDate(dateString) {
-    // Cắt phần '000Z' và thay 'T' bằng khoảng trắng
-    const formattedDate = dateString.replace("T", " ").slice(0, -5);
-    return formattedDate;
-  }
+
+  // Tính số trang
+  const totalPages = Math.ceil(filteredQuestions.length / questionsPerPage);
+
+  // Hàm thay đổi trang
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div className="flex justify-center">
@@ -106,7 +82,7 @@ const Question = () => {
               placeholder="Lọc theo chủ đề"
               value={filters.content}
               onChange={(e) =>
-                setFilters({ ...filters, content: e.target.value })
+                setFilters((prev) => ({ ...prev, content: e.target.value }))
               }
               className="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -114,7 +90,7 @@ const Question = () => {
               type="date"
               value={filters.startDate}
               onChange={(e) =>
-                setFilters({ ...filters, startDate: e.target.value })
+                setFilters((prev) => ({ ...prev, startDate: e.target.value }))
               }
               className="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -122,18 +98,12 @@ const Question = () => {
               type="date"
               value={filters.endDate}
               onChange={(e) =>
-                setFilters({ ...filters, endDate: e.target.value })
+                setFilters((prev) => ({ ...prev, endDate: e.target.value }))
               }
               className="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="mt-4 flex gap-4">
-            <button
-              onClick={handleFilter}
-              className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            >
-              Lọc
-            </button>
             <button
               onClick={handleReset}
               className="px-6 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
@@ -141,22 +111,6 @@ const Question = () => {
               Đặt lại
             </button>
           </div>
-        </div>
-
-        {/* Sắp xếp theo số lượt hỏi */}
-        <div className="flex gap-4 mb-6">
-          <button
-            onClick={() => handleSort("asc")}
-            className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-          >
-            Sắp xếp tăng dần
-          </button>
-          <button
-            onClick={() => handleSort("desc")}
-            className="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-          >
-            Sắp xếp giảm dần
-          </button>
         </div>
 
         {/* Danh sách câu hỏi */}
@@ -171,11 +125,12 @@ const Question = () => {
                 <th className="p-3 border">Chi tiết</th>
               </tr>
             </thead>
+
             <tbody>
-              {currentItems.map((question, index) => (
+              {currentQuestions.map((question, index) => (
                 <tr key={index} className="hover:bg-gray-100">
                   <td className="p-3 border-none">{question.id}</td>
-                  <td className=" limit-lines border-none">
+                  <td className="limit-lines border-none">
                     {question.content}
                   </td>
                   <td className="p-3 border min-w-max border-none">
@@ -185,10 +140,7 @@ const Question = () => {
                     {formatDate(question.first_asked_at)}
                   </td>
                   <td className="p-3 border limit-lines border-none">
-                    <button
-                      onClick={() => handleDetail(question.id)}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 min-w-max border-none"
-                    >
+                    <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 min-w-max border-none">
                       Chi tiết
                     </button>
                   </td>
@@ -196,46 +148,42 @@ const Question = () => {
               ))}
             </tbody>
           </table>
-          {/* Phân trang */}
-          {currentItems && (
-            <div className="mt-4 flex justify-center gap-4">
-              {Array.from(
-                { length: Math.ceil(filteredQuestions.length / itemsPerPage) },
-                (_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`px-4 py-2 rounded-md ${
-                      currentPage === i + 1
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-300 text-black"
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                )
-              )}
-            </div>
-          )}
-        </div>
 
-        {/* Top người dùng hỏi nhiều nhất */}
-        {/* <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Top Người Dùng</h2>
-          <ul>
-            {users
-              .sort((a, b) => b.askCount - a.askCount)
-              .map((user) => (
-                <li
-                  key={user.id}
-                  className="flex justify-between py-2 border-b"
-                >
-                  <span>{user.name}</span>
-                  <span>{user.askCount} câu hỏi</span>
-                </li>
-              ))}
-          </ul>
-        </div> */}
+          {filteredQuestions.length === 0 && (
+            <h1 className="font-bold text-center w-full">Không có dữ liệu</h1>
+          )}
+
+          {/* Phân trang */}
+          <div className="mt-6 flex justify-center gap-4">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-gray-300 text-black rounded-md disabled:opacity-50"
+            >
+              Trang trước
+            </button>
+            {[...Array(totalPages).keys()].map((page) => (
+              <button
+                key={page}
+                onClick={() => paginate(page + 1)}
+                className={`px-4 py-2 ${
+                  currentPage === page + 1
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-300 text-black"
+                } rounded-md`}
+              >
+                {page + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-gray-300 text-black rounded-md disabled:opacity-50"
+            >
+              Trang tiếp theo
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

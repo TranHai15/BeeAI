@@ -1,12 +1,7 @@
-// # Xử lý API từ AI và lưu dữ liệu vào MySQL
+import User from "../models/User.js";
+
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
-import MachDien from "../models/Data.js"; // Chú ý thêm `.js` vào đường dẫn nếu bạn sử dụng ES Modules
-import User from "../models/User.js"; // Chú ý thêm `.js` vào đường dẫn nếu bạn sử dụng ES Modules
-import fs from "fs";
-import path from "path";
-import axios from "axios";
-
 const dataController = {
   // Xử lý API ChatGPT
   chatGPT: async (req, res) => {
@@ -73,17 +68,51 @@ const dataController = {
   // Lấy thông tin số lượng tài khoản và lịch sử trò chuyện
   getNumberAccount: async (req, res) => {
     try {
-      const numberUser = await User.getAccount();
-      const numberActiveUser = await User.getActiveAccount();
       const numberHistoryChat = await User.getHistoryChat();
 
       const data = {
-        NumberUser: numberUser,
-        NumberActiveUser: numberActiveUser,
         NumberHistoryChat: numberHistoryChat
       };
 
       res.status(200).json(data);
+    } catch (error) {
+      console.error("Error fetching account data:", error);
+      res.status(500).json({
+        success: false,
+        error: "Có lỗi xảy ra khi lấy thông tin tài khoản."
+      });
+    }
+  },
+  getInfosUser: async (req, res) => {
+    try {
+      const id = await req.params.id;
+      console.log("🚀 ~ getInfosUser: ~ id:", id);
+      const numberHistoryChat = await User.getInfosUser(id);
+      res.status(200).json(numberHistoryChat);
+    } catch (error) {
+      console.error("Error fetching account data:", error);
+      res.status(500).json({
+        success: false,
+        error: "Có lỗi xảy ra khi lấy thông tin tài khoản."
+      });
+    }
+  },
+  updateInfosUser: async (req, res) => {
+    try {
+      const { name, email, password, role, createdAt, id } = req.body;
+      const salt = await bcryptjs.genSalt(10);
+      const hashedPassword = await bcryptjs.hash(password, salt);
+      const numberHistoryChat = await User.updateUser(
+        name,
+        email,
+        hashedPassword,
+        role,
+        createdAt,
+        id
+      );
+      if (numberHistoryChat > 0) {
+        res.status(200).json({ message: "Update thành công" });
+      }
     } catch (error) {
       console.error("Error fetching account data:", error);
       res.status(500).json({

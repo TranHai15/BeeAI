@@ -11,5 +11,7 @@ import dataController from "../controllers/dataController.js";
 
 router.post("/chat", dataController.chatGPT);
 router.get("/dashboard", dataController.getNumberAccount);
+router.get("/userView/:id", dataController.getInfosUser);
+router.post("/editUser", dataController.updateInfosUser);
 
 export default router;

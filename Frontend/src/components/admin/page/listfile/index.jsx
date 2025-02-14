@@ -5,7 +5,6 @@ import { showNotification } from "../../../../func";
 // Component hiển thị danh sách file
 const FileList = () => {
   const [files, setFiles] = useState([]); // file cha
-  console.log("🚀 ~ FileList ~ files:", files);
   const [isSaving, setIsSaving] = useState(false); // trạng thái load khi upload
   const [fileDetails, setFileDetails] = useState(null); // Dữ liệu chi tiết của file khi nhấn "View"
   const [fileDetailsID, setFileDetailsID] = useState(null); // Dữ liệu chi tiết của file khi nhấn "View"
@@ -15,7 +14,6 @@ const FileList = () => {
   const [showDetails, setShowDetails] = useState(false); // Trạng thái hiển thị bảng chi tiết
   const [filesAdd, setFilesAdd] = useState([]);
   const [fileType, setFileType] = useState([]);
-  console.log("🚀 ~ FileList ~ fileType:", fileType);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -350,7 +348,6 @@ const FileList = () => {
           ))}
         </tbody>
       </table>
-
       {/*  */}
       {showDetails && fileDetails && (
         <div className="absolute  bg-gray-600 bg-opacity-50 left-0 bottom-0 right-0 top-0 z-50">
@@ -483,7 +480,6 @@ const FileList = () => {
           </div>
         </div>
       )}
-
       <div className="mt-4 flex justify-center gap-4">
         {Array.from(
           { length: Math.ceil(files.length / itemsPerPage) },
@@ -501,7 +497,10 @@ const FileList = () => {
             </button>
           )
         )}
-      </div>
+      </div>{" "}
+      {currentItems.length === 0 && (
+        <h1 className="font-bold text-center w-full">Không có dữ liệu</h1>
+      )}
     </div>
   );
 };

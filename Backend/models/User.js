@@ -27,14 +27,15 @@ class User {
     const user = new User();
     await user.connect();
 
-    const insert = `INSERT INTO account (username, password, email, role_id) VALUES (?, ?, ?, ?)`;
-
+    const insert = `INSERT INTO account (username, password, email, role_id , create_at) VALUES (?, ?, ?, ?, ?)`;
+    const create_at = new Date().toISOString().slice(0, 19).replace("T", " ");
     try {
       const [result] = await user.connection.execute(insert, [
         name,
         password,
         email,
-        role
+        role,
+        create_at
       ]);
       console.log("User added:", result.insertId);
       return result.insertId; // Trả về ID của người dùng đã thêm
@@ -123,12 +124,14 @@ ORDER BY
     const user = new User();
     await user.connect();
 
-    const query = `SELECT content, MIN(id) AS example_id, MIN(create_at) AS first_asked_at, COUNT(*) AS frequency
+    const query = `SELECT content, 
+       MIN(id) AS example_id, 
+       MIN(create_at) AS first_asked_at, 
+       COUNT(*) AS frequency
 FROM chat_history_detail
+WHERE role = 'user'
 GROUP BY content
 ORDER BY frequency DESC;
-;
-;
 `;
     try {
       const [rows] = await user.connection.execute(query);
@@ -366,10 +369,66 @@ ORDER BY frequency DESC;
   static async getHistoryChat() {
     const user = new User();
     await user.connect();
-    const query = `SELECT COUNT(*) FROM chat_history_detail`;
+    const query = `SELECT 
+    COUNT(*) ,
+    COUNT(CASE WHEN create_at >= CURDATE() THEN 1 END) AS today,
+    COUNT(CASE WHEN create_at >= DATE_SUB(CURDATE(), INTERVAL 3 DAY) THEN 1 END) AS last_3_days,
+    COUNT(CASE WHEN create_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 END) AS last_week, 
+    COUNT(CASE WHEN create_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS last_month, 
+    COUNT(CASE WHEN create_at >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH) THEN 1 END) AS last_3_months,
+    COUNT(CASE WHEN create_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) THEN 1 END) AS last_6_months
+FROM chat_history_detail;
+`;
     try {
       const [result] = await user.connection.execute(query);
+      console.log("🚀 ~ User ~ getHistoryChat ~ result:", result);
       return result;
+    } catch (error) {
+      console.log(error);
+      return false;
+    } finally {
+      await user.closeConnection();
+    }
+  }
+  static async getInfosUser(id) {
+    const user = new User();
+    await user.connect();
+    const query = `SELECT a.*, c.chat_id,c.chat_title,c.create_at AS chat_create FROM account a left JOIN chat_history c ON a.id = c.id WHERE a.id = ? ;
+`;
+    try {
+      const [result] = await user.connection.execute(query, [id]);
+      console.log("🚀 ~ User ~ getHistoryChat ~ result:", result);
+      return result;
+    } catch (error) {
+      console.log(error);
+      return false;
+    } finally {
+      await user.closeConnection();
+    }
+  }
+  static async updateUser(name, email, password, role, createdAt, id) {
+    const user = new User();
+    await user.connect();
+    const query = `UPDATE account
+                    SET username = ?, email = ?, password = ?, role_id = ?, create_at = ?
+                    WHERE id = ?;
+ ;
+`;
+    try {
+      const createdAts = new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " ");
+      const [result] = await user.connection.execute(query, [
+        name,
+        email,
+        password,
+        role,
+        createdAts,
+        id
+      ]);
+      // console.log("🚀 ~ User ~ getHistoryChat ~ result:", result);
+      return result.affectedRows;
     } catch (error) {
       console.log(error);
       return false;

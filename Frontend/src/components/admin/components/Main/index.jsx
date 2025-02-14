@@ -8,6 +8,7 @@ import "./style.css";
 import FileList from "../../page/listfile";
 import ViewFile from "../../page/listfile/viewFile";
 import EditFile from "../../page/listfile/editFile";
+import UserProfile from "../../page/account/viewAccount";
 
 export default function Main() {
   return (
@@ -19,6 +20,7 @@ export default function Main() {
         <Route path="/file" element={<FileList />} />
         <Route path="/file/:id" element={<ViewFile />} />
         <Route path="/files/:id" element={<EditFile />} />
+        <Route path="/editUser/:id" element={<UserProfile />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

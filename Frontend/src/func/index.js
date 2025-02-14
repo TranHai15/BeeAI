@@ -1,20 +1,26 @@
-import "./style.css";
-export const showNotification = (message, type = "info", duration = 3000) => {
-  // Tạo phần tử thông báo
-  const notification = document.createElement("div");
+// notification.js
+import Swal from "sweetalert2"; // Import SweetAlert2
 
-  // Thêm nội dung và các lớp CSS
-  notification.textContent = message;
-  notification.className = `notification ${type}`;
+function showNotification(message, type = "success") {
+  Swal.fire({
+    icon: type, // type có thể là 'success', 'error', 'warning', 'info'
+    title: message,
+    showConfirmButton: false,
+    timer: 3000 // Thông báo tự động biến mất sau 3 giây
+  });
+}
 
-  // Thêm thông báo vào body
-  document.body.appendChild(notification);
+async function showConfirm(message) {
+  const result = await Swal.fire({
+    title: message,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Xác nhận",
+    cancelButtonText: "Hủy",
+    reverseButtons: true
+  });
 
-  // Tự động ẩn sau một khoảng thời gian
-  setTimeout(() => {
-    notification.classList.add("hide");
-    notification.addEventListener("transitionend", () => {
-      notification.remove();
-    });
-  }, duration);
-};
+  return result.isConfirmed; // Trả về true nếu nhấn xác nhận, false nếu nhấn hủy
+}
+// Đảm bảo thư viện có thể sử dụng
+export { showNotification, showConfirm };

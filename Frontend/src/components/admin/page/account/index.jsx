@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from "react";
 import axiosClient from "../../../../api/axiosClient";
+import { useNavigate } from "react-router-dom";
+
+import { showNotification } from "../../../../func";
+
 const Account = () => {
   const [users, setUsers] = useState([]); // Dữ liệu người dùng
   const [filteredUsers, setFilteredUsers] = useState([]); // Dữ liệu sau khi lọc
   const [filters, setFilters] = useState({
     name: "",
     email: "",
-    status: "all", // "online", "offline", "all"
+    status: "all",
     startDate: "",
     endDate: ""
   });
-
+  const Navigator = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   useEffect(() => {
-    // Dữ liệu giả lập, thay bằng API thực tế
     const fetchUsers = async () => {
       const res = await axiosClient.get("/user/");
       setUsers(res.data);
@@ -25,50 +28,49 @@ const Account = () => {
     fetchUsers();
   }, []);
 
-  const handleFilter = () => {
+  // Hàm lọc dữ liệu
+  useEffect(() => {
     let filtered = [...users];
 
-    // Lọc theo tên
-    if (filters.name) {
-      const nameSearch = filters.name.toLowerCase().replace(/\s+/g, ""); // Chuyển về chữ thường, bỏ khoảng trắng
+    if (filters.name.trim()) {
+      const nameSearch = filters.name.toLowerCase().replace(/\s+/g, "");
       filtered = filtered.filter((user) =>
-        user.name.toLowerCase().replace(/\s+/g, "").includes(nameSearch)
+        user.username?.toLowerCase().replace(/\s+/g, "").includes(nameSearch)
       );
     }
 
-    // Lọc theo email
-    if (filters.email) {
+    if (filters.email.trim()) {
       const emailSearch = filters.email.toLowerCase().replace(/\s+/g, "");
       filtered = filtered.filter((user) =>
-        user.email.toLowerCase().replace(/\s+/g, "").includes(emailSearch)
+        user.email?.toLowerCase().replace(/\s+/g, "").includes(emailSearch)
       );
     }
 
-    // Lọc theo trạng thái
     if (filters.status !== "all") {
-      if (filters.status == "null") {
+      if (filters.status === "null") {
         filtered = filtered.filter((user) => user.statuss == null);
       } else {
         filtered = filtered.filter((user) => user.statuss !== null);
       }
     }
 
-    // Lọc theo ngày tháng
     if (filters.startDate) {
       filtered = filtered.filter(
-        (user) => new Date(user.createdAt) >= new Date(filters.startDate)
+        (user) => new Date(user.create_at) >= new Date(filters.startDate)
       );
     }
+
     if (filters.endDate) {
       filtered = filtered.filter(
-        (user) => new Date(user.createdAt) <= new Date(filters.endDate)
+        (user) => new Date(user.create_at) <= new Date(filters.endDate)
       );
     }
 
     setFilteredUsers(filtered);
-    setCurrentPage(1); // Reset về trang đầu
-  };
+    setCurrentPage(1);
+  }, [filters, users]);
 
+  // Reset bộ lọc
   const handleReset = () => {
     setFilters({
       name: "",
@@ -77,14 +79,30 @@ const Account = () => {
       startDate: "",
       endDate: ""
     });
-    setFilteredUsers(users);
-    setCurrentPage(1);
   };
 
   // Phân trang
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handelEdit = (id) => {
+    Navigator(`/admin/editUser/${id}`);
+  };
+
+  // Hàm xóa người dùng
+  const handleDelete = async (id) => {
+    if (confirm("Bạn có chắc muốn xóa người dùng này?")) {
+      try {
+        await axiosClient.delete(`/user/delete/${id}`);
+        setUsers(users.filter((user) => user.id !== id));
+        showNotification("Người dùng đã được xóa.");
+      } catch (error) {
+        console.log("🚀 ~ handleDelete ~ error:", error);
+        showNotification("Không thể xóa người dùng. Vui lòng thử lại.");
+      }
+    }
+  };
 
   return (
     <div className="flex justify-center">
@@ -114,7 +132,6 @@ const Account = () => {
               onChange={(e) =>
                 setFilters({ ...filters, status: e.target.value })
               }
-              // helow ban  ban can gì toi co the gip ban
               className="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Tất cả trạng thái</option>
@@ -139,12 +156,6 @@ const Account = () => {
             />
           </div>
           <div className="mt-4 flex gap-4">
-            <button
-              onClick={handleFilter}
-              className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            >
-              Lọc
-            </button>
             <button
               onClick={handleReset}
               className="px-6 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
@@ -174,19 +185,22 @@ const Account = () => {
                   <td className="p-3 border">{user.username}</td>
                   <td className="p-3 border">{user.email}</td>
                   <td className="p-3 border">
-                    {user.role_id === 1 ? " Admin" : " User"}
+                    {user.role_id === 1 ? "Admin" : "User"}
                   </td>
                   <td className="p-3 border">
                     {user.statuss ? "Đang hoạt động" : "Không hoạt động"}
                   </td>
                   <td className="p-3 border">
-                    <button className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 mr-2">
+                    <button
+                      onClick={() => handelEdit(user.id)}
+                      className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 mr-2"
+                    >
                       Chi tiết
                     </button>
-                    <button className="px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 mr-2">
-                      Sửa
-                    </button>
-                    <button className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600">
+                    <button
+                      onClick={() => handleDelete(user.id)}
+                      className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    >
                       Xóa
                     </button>
                   </td>
@@ -194,27 +208,8 @@ const Account = () => {
               ))}
             </tbody>
           </table>
-
-          {/* Phân trang */}
-          {currentItems.length > 10 && (
-            <div className="mt-4 flex justify-center gap-4">
-              {Array.from(
-                { length: Math.ceil(filteredUsers.length / itemsPerPage) },
-                (_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`px-4 py-2 rounded-md ${
-                      currentPage === i + 1
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-300 text-black"
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                )
-              )}
-            </div>
+          {currentItems.length === 0 && (
+            <h1 className="font-bold text-center w-full">Không có dữ liệu</h1>
           )}
         </div>
       </div>

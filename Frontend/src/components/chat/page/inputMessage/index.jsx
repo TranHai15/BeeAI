@@ -13,7 +13,8 @@ export default function InputMessage() {
     SetMessagesChat,
     setIsSending,
     setRoomId,
-    setIsLoading
+    setIsLoading,
+    isLoading
   } = useContext(ChatContext);
 
   const navigate = useNavigate();
@@ -80,28 +81,33 @@ export default function InputMessage() {
       let aiResponse = "";
 
       // Đọc luồng dữ liệu từ API AI
+      let accumulatedResponse = ""; // Để gom tất cả dữ liệu từ aiResponse
+
       while (true) {
         const { value, done } = await reader.read();
-
+        // if (isLoading !== false) {
+        setIsLoading(false);
+        // }
         if (done) break;
 
         const text = decoder.decode(value);
-
         const lines = text;
 
-        // const i = lines.length - 1;
+        accumulatedResponse += lines; // Gom dữ liệu vào accumulatedResponse
 
         flushSync(() => {
-          aiResponse = lines;
           SetMessagesChat((prevMessages) => {
             const lastMessage = prevMessages[prevMessages.length - 1];
             if (lastMessage?.role === "assistant") {
               return [
                 ...prevMessages.slice(0, -1),
-                { ...lastMessage, content: lines }
+                { ...lastMessage, content: accumulatedResponse } // Cập nhật dữ liệu ngay
               ];
             }
-            return [...prevMessages, { role: "assistant", content: lines }];
+            return [
+              ...prevMessages,
+              { role: "assistant", content: accumulatedResponse } // Nếu không có, tạo một tin nhắn mới
+            ];
           });
         });
       }
@@ -111,7 +117,7 @@ export default function InputMessage() {
       });
       await InsertMessageUser(roomIdLoca.current, {
         role: "assistant",
-        content: aiResponse
+        content: accumulatedResponse
       });
 
       // console.log("🚀 ~ handleResAl ~ aiResponse:", aiResponse);
