@@ -366,26 +366,49 @@ ORDER BY frequency DESC;
       await user.closeConnection();
     }
   }
-  static async getHistoryChat() {
+  static async getHistoryChat(day) {
     const user = new User();
     await user.connect();
-    const query = `SELECT 
-    COUNT(*) ,
-    COUNT(CASE WHEN create_at >= CURDATE() THEN 1 END) AS today,
-    COUNT(CASE WHEN create_at >= DATE_SUB(CURDATE(), INTERVAL 3 DAY) THEN 1 END) AS last_3_days,
-    COUNT(CASE WHEN create_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 END) AS last_week, 
-    COUNT(CASE WHEN create_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS last_month, 
-    COUNT(CASE WHEN create_at >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH) THEN 1 END) AS last_3_months,
-    COUNT(CASE WHEN create_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) THEN 1 END) AS last_6_months
-FROM chat_history_detail;
-`;
     try {
-      const [result] = await user.connection.execute(query);
-      console.log("🚀 ~ User ~ getHistoryChat ~ result:", result);
-      return result;
+      let intervalQuery = "";
+      switch (day) {
+        case "1":
+          intervalQuery = "INTERVAL 1 DAY";
+          break;
+        case "3":
+          intervalQuery = "INTERVAL 3 DAY";
+          break;
+        case "7":
+          intervalQuery = "INTERVAL 7 DAY";
+          break;
+        case "30":
+          intervalQuery = "INTERVAL 1 MONTH";
+          break;
+        case "180":
+          intervalQuery = "INTERVAL 6 MONTH";
+          break;
+        case "365":
+          intervalQuery = "INTERVAL 1 YEAR";
+          break;
+        default:
+          intervalQuery = "INTERVAL 1 DAY"; // Mặc định nếu giá trị không hợp lệ
+      }
+      console.log("🚀 ~ User ~ getHistoryChat ~ intervalQuery:", intervalQuery);
+
+      // Truy vấn SQL lấy dữ liệu theo khoảng thời gian
+      const sql = `
+      SELECT DATE(create_at) AS date, COUNT(*) AS total_questions
+      FROM chat_history_detail
+      WHERE create_at >= NOW() - ${intervalQuery}
+      GROUP BY DATE(create_at)
+      ORDER BY date ASC
+    `;
+
+      const [rows] = await user.connection.execute(sql);
+      return rows;
     } catch (error) {
-      console.log(error);
-      return false;
+      console.error("Lỗi khi lấy dữ liệu:", error);
+      res.status(500).json({ success: false, message: "Lỗi server" });
     } finally {
       await user.closeConnection();
     }
@@ -398,6 +421,30 @@ FROM chat_history_detail;
     try {
       const [result] = await user.connection.execute(query, [id]);
       console.log("🚀 ~ User ~ getHistoryChat ~ result:", result);
+      return result;
+    } catch (error) {
+      console.log(error);
+      return false;
+    } finally {
+      await user.closeConnection();
+    }
+  }
+  static async getInfosUserChatDetail(content) {
+    const user = new User();
+    await user.connect();
+
+    const query = `SELECT a.id, a.email, a.username, a.create_at, a.role_id,a.password AS statuss,
+       MAX(c.chat_id) AS chat_id, 
+       MAX(ch.content) AS content
+FROM chat_history_detail ch
+JOIN chat_history c ON c.chat_id = ch.chat_id
+JOIN account a ON a.id = c.id
+WHERE ch.content LIKE "%${content}%" AND ch.role="user"
+GROUP BY a.id;
+`;
+    try {
+      const [result] = await user.connection.execute(query, [content]);
+
       return result;
     } catch (error) {
       console.log(error);

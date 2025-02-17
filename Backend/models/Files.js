@@ -46,13 +46,13 @@ class fileModel {
     uploaded_at = new Date().toISOString().slice(0, 19).replace("T", " "),
     is_active = 1
   ) {
-    console.log("🚀 ~ fileModel ~ file_id:", file_id);
-    console.log("🚀 ~ fileModel ~ filePath:", filePath);
-    console.log("🚀 ~ fileModel ~ file_type:", file_type);
-    console.log("🚀 ~ fileModel ~ uploaded_by:", uploaded_by);
-    console.log("🚀 ~ fileModel ~ version_number:", version_number);
-    console.log("🚀 ~ fileModel ~ uploaded_at:", uploaded_at);
-    console.log("🚀 ~ fileModel ~  is_active :", is_active);
+    // console.log("🚀 ~ fileModel ~ file_id:", file_id);
+    // console.log("🚀 ~ fileModel ~ filePath:", filePath);
+    // console.log("🚀 ~ fileModel ~ file_type:", file_type);
+    // console.log("🚀 ~ fileModel ~ uploaded_by:", uploaded_by);
+    // console.log("🚀 ~ fileModel ~ version_number:", version_number);
+    // console.log("🚀 ~ fileModel ~ uploaded_at:", uploaded_at);
+    // console.log("🚀 ~ fileModel ~  is_active :", is_active);
     const user = new fileModel();
     await user.connect();
 
@@ -77,6 +77,7 @@ class fileModel {
       throw error;
     }
   }
+  // console.log("🚀 ~ fileModel ~ version_number:", version_number)
 
   static async insertFiles(fileName, fileType) {
     const user = new fileModel();

@@ -13,5 +13,6 @@ router.post("/chat", dataController.chatGPT);
 router.get("/dashboard", dataController.getNumberAccount);
 router.get("/userView/:id", dataController.getInfosUser);
 router.post("/editUser", dataController.updateInfosUser);
+router.get("/getDetailChat", dataController.getDetailChat);
 
 export default router;

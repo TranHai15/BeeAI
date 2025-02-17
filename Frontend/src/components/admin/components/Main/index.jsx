@@ -9,7 +9,7 @@ import FileList from "../../page/listfile";
 import ViewFile from "../../page/listfile/viewFile";
 import EditFile from "../../page/listfile/editFile";
 import UserProfile from "../../page/account/viewAccount";
-
+import ListAccount from "../../page/question/ListUser";
 export default function Main() {
   return (
     <>
@@ -21,6 +21,7 @@ export default function Main() {
         <Route path="/file/:id" element={<ViewFile />} />
         <Route path="/files/:id" element={<EditFile />} />
         <Route path="/editUser/:id" element={<UserProfile />} />
+        <Route path="/viewChat" element={<ListAccount />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -22,6 +22,7 @@ const Account = () => {
     const fetchUsers = async () => {
       const res = await axiosClient.get("/user/");
       setUsers(res.data);
+      console.log("🚀 ~ fetchUsers ~ res.data:", res.data);
       setFilteredUsers(res.data);
     };
 

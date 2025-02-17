@@ -15,7 +15,7 @@ export default function Login() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors }
   } = useForm();
 
   // Kiểm tra trạng thái login khi component được mount
@@ -30,26 +30,26 @@ export default function Login() {
     try {
       const response = await axios.post("auth/login", data);
       const dataLogin = response.data;
-      console.log("🚀 ~ loginUser ~ dataLogin:", dataLogin);
+      // console.log("🚀 ~ loginUser ~ dataLogin:", dataLogin);
 
       localStorage.setItem(
         "active",
         JSON.stringify({
           isLogin: true,
-          dataLogin,
+          dataLogin
         })
       );
 
       const token = dataLogin.accessToken;
       const decoded = jwtDecode(token);
-      const { role } = decoded;
+      const { role_id } = decoded;
 
       // Cập nhật trạng thái login và role vào context
       setIsLogin(true);
-      setIsRole(role);
+      setIsRole(role_id);
 
-      // Điều hướng dựa trên role
-      if (role === 1) {
+      // Điều hướng dựa trên role_id
+      if (role_id === 1) {
         Navigator("/admin");
       } else {
         Navigator("/");
@@ -92,8 +92,8 @@ export default function Login() {
                 required: "Vui lòng nhập Email",
                 pattern: {
                   value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-                  message: "Email không đúng định dạng",
-                },
+                  message: "Email không đúng định dạng"
+                }
               })}
               placeholder="Enter your email"
               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

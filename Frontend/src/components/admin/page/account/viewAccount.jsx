@@ -359,7 +359,7 @@ const UserProfile = () => {
             onClick={resetChat}
             className="fixed bottom-5 right-5 px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600"
           >
-            Reset Chat
+            Thoát Chat
           </button>
         </div>
       )}

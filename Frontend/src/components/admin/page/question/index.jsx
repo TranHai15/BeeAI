@@ -1,17 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import axiosClient from "../../../../api/axiosClient";
 import "./style.css";
-
+import { useNavigate } from "react-router-dom";
+import { ChatContext } from "../../../../contexts/ChatContext";
 const Question = () => {
   const [questions, setQuestions] = useState([]);
-  console.log("🚀 ~ Question ~ questions:", questions);
+  // console.log("🚀 ~ Question ~ questions:", questions);
   const [filteredQuestions, setFilteredQuestions] = useState([]);
   const [filters, setFilters] = useState({
     content: "",
     startDate: "",
     endDate: ""
   });
-
+  const Navigate = useNavigate();
+  const { listUser, SetlistUser } = useContext(ChatContext);
   const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
   const [questionsPerPage] = useState(10); // Số lượng câu hỏi mỗi trang
 
@@ -70,6 +72,15 @@ const Question = () => {
   // Hàm thay đổi trang
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  const hendleViet = async (content) => {
+    // console.log("🚀 ~ hendleViet ~ content:", content);
+    const res = await axiosClient.get(`/api/getDetailChat?days=${content}`);
+    // console.log("🚀 ~ hendleViet ~ res:", res);
+    SetlistUser(res.data);
+
+    // console.log("🚀 ~ hendleViet ~ listUser:", listUser);
+    Navigate(`/admin/viewChat`);
+  };
   return (
     <div className="flex justify-center">
       <div className="p-6 bg-gray-100 min-h-screen w-10/12">
@@ -140,7 +151,10 @@ const Question = () => {
                     {formatDate(question.first_asked_at)}
                   </td>
                   <td className="p-3 border limit-lines border-none">
-                    <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 min-w-max border-none">
+                    <button
+                      onClick={() => hendleViet(question.content)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 min-w-max border-none"
+                    >
                       Chi tiết
                     </button>
                   </td>

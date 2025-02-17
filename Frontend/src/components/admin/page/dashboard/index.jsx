@@ -22,15 +22,24 @@ ChartJS.register(
   Legend
 );
 
+const timeRangeMapping = {
+  day: 1,
+  threeDays: 3,
+  week: 7,
+  month: 30,
+  sixMonths: 180,
+  all: 365
+};
+
 const Dashboard = () => {
-  const [timeRange, setTimeRange] = useState("day"); // State cho khoảng thời gian
-  const [totalQuestions, setTotalQuestions] = useState(50); // Tổng số câu hỏi
+  const [timeRange, setTimeRange] = useState("day");
+  const [totalQuestions, setTotalQuestions] = useState(0);
   const [chartData, setChartData] = useState({
-    labels: ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"],
+    labels: [],
     datasets: [
       {
         label: "Số câu hỏi",
-        data: [50, 60, 45, 70, 80, 90, 100],
+        data: [],
         borderColor: "#007bff",
         backgroundColor: "rgba(0, 123, 255, 0.2)",
         tension: 0.4
@@ -38,47 +47,29 @@ const Dashboard = () => {
     ]
   });
 
-  // Gọi API khi thay đổi khoảng thời gian
   useEffect(() => {
     async function fetchData() {
-      // Dữ liệu giả lập, thay bằng API thực tế
-      const res = await axiosClient.get("/api/dashboard");
-      console.log("🚀 ~ fetchData ~ res:", res.data.NumberHistoryChat);
-      const apiData = {
-        day: { totalQuestions: 50, chartData: [10, 15, 20, 10, 30, 50, 60] },
-        threeDays: {
-          totalQuestions: 150,
-          chartData: [40, 50, 60, 70, 80, 90, 100]
-        },
-        week: {
-          totalQuestions: 500,
-          chartData: [150, 200, 180, 220, 300, 250, 400]
-        },
-        month: {
-          totalQuestions: 2000,
-          chartData: [500, 600, 700, 800, 750, 900, 950]
-        },
-        sixMonths: {
-          totalQuestions: 10000,
-          chartData: [1500, 1600, 1700, 1800, 1900, 2000, 2100]
-        },
-        all: {
-          totalQuestions: 50000,
-          chartData: [5000, 6000, 7000, 8000, 9000, 10000, 11000]
-        }
-      };
+      try {
+        const days = timeRangeMapping[timeRange] || 1;
+        const res = await axiosClient.get(`/api/dashboard?days=${days}`);
 
-      const data = apiData[timeRange]; // Lấy dữ liệu theo khoảng thời gian
+        // Format dữ liệu từ API
+        const labels = res.data.map((item) => item.date);
+        const data = res.data.map((item) => item.total_questions);
+        const total = data.reduce((sum, value) => sum + value, 0);
 
-      setTotalQuestions(data.totalQuestions); // Cập nhật tổng số câu hỏi
-      setChartData({
-        ...chartData,
-        datasets: [{ ...chartData.datasets[0], data: data.chartData }]
-      });
+        setTotalQuestions(total);
+        setChartData({
+          labels,
+          datasets: [{ ...chartData.datasets[0], data }]
+        });
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu:", error);
+      }
     }
 
     fetchData();
-  }, [timeRange]); // Cập nhật khi `timeRange` thay đổi
+  }, [timeRange]);
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -91,10 +82,10 @@ const Dashboard = () => {
         >
           <option value="day">Trong ngày</option>
           <option value="threeDays">3 ngày qua</option>
-          <option value="week">Trong tuần</option>
+          <option value="week">1 tuần qua</option>
           <option value="month">Trong tháng</option>
           <option value="sixMonths">6 tháng qua</option>
-          <option value="all">Tất cả</option>
+          <option value="all">1 năm qua</option>
         </select>
       </div>
 

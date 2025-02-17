@@ -68,13 +68,26 @@ const dataController = {
   // Lấy thông tin số lượng tài khoản và lịch sử trò chuyện
   getNumberAccount: async (req, res) => {
     try {
-      const numberHistoryChat = await User.getHistoryChat();
+      const day = req.query.days;
 
-      const data = {
-        NumberHistoryChat: numberHistoryChat
-      };
+      const numberHistoryChat = await User.getHistoryChat(day);
 
-      res.status(200).json(data);
+      res.status(200).json(numberHistoryChat);
+    } catch (error) {
+      console.error("Error fetching account data:", error);
+      res.status(500).json({
+        success: false,
+        error: "Có lỗi xảy ra khi lấy thông tin tài khoản."
+      });
+    }
+  },
+  getDetailChat: async (req, res) => {
+    try {
+      const day = req.query.days;
+
+      const numberHistoryChat = await User.getInfosUserChatDetail(day);
+
+      res.status(200).json(numberHistoryChat);
     } catch (error) {
       console.error("Error fetching account data:", error);
       res.status(500).json({

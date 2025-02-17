@@ -10,9 +10,12 @@ export const AppProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [roomId, setRoomId] = useState("");
   const [connectionError, setConnectionError] = useState(true);
+  const [listUser, SetlistUser] = useState([]);
   return (
     <ChatContext.Provider
       value={{
+        listUser,
+        SetlistUser,
         isSidebar,
         setIsSidebar,
         message,
@@ -26,7 +29,7 @@ export const AppProvider = ({ children }) => {
         setRoomId,
         setConnectionError,
         setIsLoading,
-        isLoading,
+        isLoading
       }}
     >
       {children}
