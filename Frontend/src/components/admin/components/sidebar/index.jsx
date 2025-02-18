@@ -1,7 +1,21 @@
+import { showNotification } from "../../../../func";
 import "./style.css";
 import { NavLink } from "react-router-dom";
 
 export default function Sidebar() {
+  const logout = async () => {
+    const data = {
+      data: {
+        dataUser: "",
+        refreshToken: "",
+        accessToken: ""
+      },
+      isLogin: false
+    };
+    localStorage.setItem("active", JSON.stringify(data));
+    showNotification("Đăng Xuat thành công!", "success");
+    window.location.reload();
+  };
   return (
     <aside className="admin-sidebar">
       <ul>
@@ -48,6 +62,14 @@ export default function Sidebar() {
           >
             File
           </NavLink>
+        </li>
+        <li>
+          <button
+            className="p-2 hover:bg-slate-400 w-full text-start"
+            onClick={() => logout()}
+          >
+            Đăng Xuất
+          </button>
         </li>
         {/* <li>
           <a href="/settings">Cài đặt</a>

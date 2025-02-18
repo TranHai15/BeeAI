@@ -124,7 +124,30 @@ const fileController = {
       // if (deleteCount > 0) {
       return res
         .status(200)
-        .json({ message: "Xóa thành công", deletedCount: deleteCount });
+        .json({ message: "Ẩn thành công", deletedCount: deleteCount });
+      // } else {
+      //   return res.status(404).json("Không tìm thấy người dùng để xóa.");
+      // }
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ message: "Lỗi xóa người dùng", error: error.message });
+    }
+  },
+  resetFile: async (req, res) => {
+    try {
+      const idUser = req.params.id; // Lấy id từ req.params thay vì req.body
+      //   console.log("🚀 ~ deleteFile: ~ idUser:", idUser);
+      if (!idUser) {
+        return res.status(400).json("ID người dùng là bắt buộc."); // Kiểm tra ID
+      }
+
+      const deleteCount = await fileModel.restFile(idUser); // Gọi hàm delete
+
+      // if (deleteCount > 0) {
+      return res
+        .status(200)
+        .json({ message: "Ẩn thành công", deletedCount: deleteCount });
       // } else {
       //   return res.status(404).json("Không tìm thấy người dùng để xóa.");
       // }

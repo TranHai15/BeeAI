@@ -49,7 +49,8 @@ router.get("/get-file/:id", fileController.getOneFile);
 // Route tải xuống file gộp
 router.post("/download", fileController.downloadMergedFile);
 router.post("/updateCheck", fileController.updateCheck);
-router.delete("/delete/:id", fileController.deleteFile);
+router.get("/hidden/:id", fileController.deleteFile);
+router.get("/reset/:id", fileController.resetFile);
 router.delete("/deletes/:id", fileController.deleteFiles);
 
 export default router;

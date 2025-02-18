@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import "./style.css";
+import { useNavigate } from "react-router-dom";
 
 export default function Header() {
   const [isLogoutPopupVisible, setLogoutPopupVisible] = useState(false);
-
+  const Navigate = useNavigate();
   // Hàm mở/đóng popup đăng xuất
   const toggleLogoutPopup = () => {
     setLogoutPopupVisible(!isLogoutPopupVisible);
@@ -11,15 +12,17 @@ export default function Header() {
 
   // Hàm xử lý đăng xuất
   const handleLogout = () => {
-    // Xử lý đăng xuất tại đây (ví dụ: xóa token, chuyển hướng...)
-    console.log("Đã đăng xuất");
-    setLogoutPopupVisible(false);
+    Navigate("/admin");
   };
 
   return (
     <header className="admin-header">
-      <div className="logo" onClick={toggleLogoutPopup}>
-        Admin
+      <div className="logo flex gap-1 items-center" onClick={handleLogout}>
+        <span>Cao Đẳng FPT</span>
+        {/* <img
+          className="w-28 bg-transparent"
+          src="../../../src/assets/logoFpt.jpg"
+        /> */}
       </div>
 
       {isLogoutPopupVisible && (

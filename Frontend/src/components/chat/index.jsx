@@ -39,13 +39,13 @@ export default function Chat() {
       {/* {isLoading ? (
         {/* <LoadingBee /> */}
       {/* ) : (  */}
-      <div className="containers ">
+      <div className="containers">
         {isSidebar && (
           <div className="sidebar">
             <Sidebar />
           </div>
         )}
-        <div className={`${isSidebar ? "content" : "content__is"}`}>
+        <div className="content">
           <header>
             <Header />
           </header>

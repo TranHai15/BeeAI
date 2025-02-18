@@ -83,18 +83,19 @@ class fileModel {
     const user = new fileModel();
     await user.connect();
     const insertQuery = `
-      INSERT INTO files (file_name, fileType,created_at)
-      VALUES (?, ?,?)
+      INSERT INTO files (file_name, fileType,statusFile,created_at)
+      VALUES (?, ?,?,?)
     `;
     try {
       const created_at = new Date()
         .toISOString()
         .slice(0, 19)
         .replace("T", " ");
-
+      const statusFile = 1;
       const [result] = await user.connection.execute(insertQuery, [
         fileName,
         fileType,
+        statusFile,
         created_at
       ]);
       return result.insertId;
@@ -340,6 +341,7 @@ class fileModel {
     f.file_name, 
     f.fileType, 
     f.created_at, 
+    f.statusFile,
     COUNT(v.id) AS version_count, 
     u.username
     FROM files f
@@ -386,27 +388,20 @@ class fileModel {
       "Select file_path ,file_type, id from file_versions where file_id = ?";
     try {
       const [result] = await user.connection.execute(param, [id]);
+      console.log("🚀 ~ fileModel ~ deleteFile ~ result:", result);
       result.forEach(async (element, index) => {
-        const query = `DELETE FROM file_versions WHERE id = ?`;
+        const query = `UPDATE file_versions SET is_active= 0 WHERE id=?`;
         try {
           const [results] = await user.connection.execute(query, [element.id]);
-          console.log("File đã được xóa thành công! DB", index);
+          console.log("File đã được An thành công! DB", index);
         } catch (error) {
-          console.error("Lỗi khi xóa người dùng:", error);
+          console.error("Lỗi khi An người dùng:", error);
           throw error;
         } finally {
           await user.closeConnection(); // Đóng kết nối
         }
-        // sau khi xóa trong db xong thì xóa ở ngoài  PC
-        fs.unlink(element.file_path, (err) => {
-          if (err) {
-            console.error("Lỗi khi xóa file:", err);
-          } else {
-            console.log("File đã được xóa thành công! PC");
-          }
-        });
       });
-      const params = `DELETE FROM files WHERE id = ?`;
+      const params = `UPDATE files SET statusFile= 0 WHERE id= ?`;
       try {
         const [res] = await user.connection.execute(params, [id]);
         // console.log("🚀 ~ fileModel ~ deleteFile ~ res:", res);
@@ -423,6 +418,53 @@ class fileModel {
       throw error;
     }
   }
+  static async restFile(id) {
+    const user = new fileModel();
+    await user.connect();
+
+    const param =
+      "SELECT file_path, file_type, id FROM file_versions WHERE file_id = ?";
+    try {
+      const [result] = await user.connection.execute(param, [id]);
+
+      for (let index = 0; index < result.length; index++) {
+        const element = result[index];
+
+        // Nếu là file cuối cùng, đặt is_active = 1, còn lại = 0
+        const isActive = index === result.length - 1 ? 1 : 0;
+        const query = `UPDATE file_versions SET is_active = ? WHERE id = ?`;
+        try {
+          await user.connection.execute(query, [isActive, element.id]);
+          // console.log(
+          //   `File ID: ${element.id} cập nhật is_active = ${isActive}`
+          // );
+        } catch (error) {
+          console.error("Lỗi khi cập nhật is_active:", error);
+          throw error;
+        }
+      }
+
+      // Sau khi cập nhật xong, đổi statusFile = 1
+      const params = `UPDATE files SET statusFile = 1 WHERE id = ?`;
+      try {
+        await user.connection.execute(params, [id]);
+        console.log("Cập nhật statusFile = 1 thành công!");
+      } catch (error) {
+        console.error("Lỗi khi cập nhật statusFile:", error);
+        throw error;
+      }
+
+      // Đóng kết nối sau khi hoàn tất
+      await user.closeConnection();
+
+      // Gọi hàm gửi file sau khi hoàn tất
+      await fileModel.GetFileANDSenFile();
+    } catch (error) {
+      console.error("Lỗi khi xử lý file:", error);
+      throw error;
+    }
+  }
+
   static async deleteFiles(id) {
     const user = new fileModel();
     await user.connect();
